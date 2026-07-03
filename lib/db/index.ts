@@ -7,11 +7,9 @@ import * as schema from "./schema";
 import { config } from "@/lib/config";
 
 function resolveDbPath(): string {
-  // DATABASE_URL is file:./data/careeros.db relative to the project root.
-  const url = config.databaseUrl.replace(/^file:/, "");
-  const abs = path.isAbsolute(url) ? url : path.join(process.cwd(), url);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  return abs;
+  // All filesystem locations are decided centrally in lib/config.ts.
+  fs.mkdirSync(path.dirname(config.paths.db), { recursive: true });
+  return config.paths.db;
 }
 
 declare global {

@@ -27,8 +27,8 @@ const DATA_TABLES: Array<{ label: string; table: SQLiteTable }> = [
 
 export default function SettingsPage() {
   const token = getOrCreateExtensionToken();
-  const dbPath = path.resolve(process.cwd(), config.databaseUrl.replace(/^file:/, ""));
-  const storagePath = path.resolve(process.cwd(), config.storagePath);
+  const dbPath = config.paths.db;
+  const storagePath = config.paths.storage;
   const aiGenerationCount = countOf(tables.aiGenerations);
 
   return (

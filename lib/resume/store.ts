@@ -65,7 +65,7 @@ export async function generateResume(opts: GenerateResumeOptions) {
     .returning()
     .get();
 
-  const dir = path.join(config.storagePath, "resumes", String(row.id));
+  const dir = path.join(config.paths.storage, "resumes", String(row.id));
   fs.mkdirSync(dir, { recursive: true });
 
   const mdPath = path.join(dir, "resume.md");

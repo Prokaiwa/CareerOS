@@ -50,7 +50,7 @@ export async function generateCoverLetter(opts: {
     .returning()
     .get();
 
-  const dir = path.join(process.cwd(), config.storagePath, "coverletters", String(inserted.id));
+  const dir = path.join(config.paths.storage, "coverletters", String(inserted.id));
   fs.mkdirSync(dir, { recursive: true });
   const mdPath = path.join(dir, "letter.md");
   const htmlPath = path.join(dir, "letter.html");

@@ -37,7 +37,7 @@ export async function DELETE(
 
   db.delete(tables.resumeVersions).where(eq(tables.resumeVersions.id, id)).run();
 
-  const dir = path.join(config.storagePath, "resumes", String(id));
+  const dir = path.join(config.paths.storage, "resumes", String(id));
   fs.rmSync(dir, { recursive: true, force: true });
 
   return ok({ success: true });

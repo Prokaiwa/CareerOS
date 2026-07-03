@@ -134,6 +134,16 @@ ANTHROPIC_API_KEY=sk-ant-...
 2. **Audit-logged** in the `ai_generations` table with prompt summary, token counts, and timestamp.
 3. **Optional and replaceable:** features degrade gracefully if AI is disabled.
 
+## Project Constitution
+
+The permanent, authoritative references for every contributor (human or AI).
+Future work must follow these unless a revision is recorded in the decision log:
+
+- **[docs/ENGINEERING_PRINCIPLES.md](docs/ENGINEERING_PRINCIPLES.md)** — the permanent engineering rules (Career Brain canonicality, engines over page logic, local-first, optional/auditable AI, desktop-first future).
+- **[docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md)** — mission, what CareerOS is and is not, UX philosophy, future vision.
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — the system map: engines, responsibilities, data flow, extension points.
+- **[docs/DECISION_LOG.md](docs/DECISION_LOG.md)** — why the architecture is the way it is; append new major decisions here.
+
 ## Roadmap
 
 ### Near-term (v0.3)

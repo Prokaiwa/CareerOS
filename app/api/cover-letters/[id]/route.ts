@@ -40,7 +40,7 @@ export async function DELETE(
   db.delete(tables.coverLetterVersions)
     .where(eq(tables.coverLetterVersions.id, id))
     .run();
-  fs.rmSync(path.join(process.cwd(), config.storagePath, "coverletters", String(id)), {
+  fs.rmSync(path.join(config.paths.storage, "coverletters", String(id)), {
     recursive: true,
     force: true,
   });

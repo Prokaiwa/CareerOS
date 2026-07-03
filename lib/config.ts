@@ -1,3 +1,4 @@
+import path from "node:path";
 import { z } from "zod";
 
 /**
@@ -28,12 +29,30 @@ const aiKeys = {
 
 export type AiProvider = keyof typeof aiKeys;
 
+/**
+ * The single place CareerOS decides where it lives on disk. Everything that
+ * touches the filesystem resolves through config.paths — when the app is
+ * packaged as a desktop application, pointing `root` at the platform's
+ * app-data directory relocates all user data in one change.
+ */
+const root = process.cwd();
+const dbFile = env.DATABASE_URL.replace(/^file:/, "");
+
 export const config = {
   appName: env.APP_NAME,
   appUrl: env.APP_URL,
   databaseUrl: env.DATABASE_URL,
   storagePath: env.STORAGE_PATH,
   logLevel: env.LOG_LEVEL,
+  paths: {
+    root,
+    /** Absolute path of the SQLite database file. */
+    db: path.isAbsolute(dbFile) ? dbFile : path.join(root, dbFile),
+    /** Absolute path of the storage directory (rendered artifacts, exports). */
+    storage: path.resolve(root, env.STORAGE_PATH),
+    /** Absolute path where backups are written. */
+    backups: path.join(root, "backups"),
+  },
   ai: {
     provider: env.AI_PROVIDER as AiProvider,
     keys: aiKeys,
