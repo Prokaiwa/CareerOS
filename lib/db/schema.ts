@@ -332,6 +332,56 @@ export const resumeVersions = sqliteTable("resume_versions", {
   createdAt: createdAt(),
 });
 
+/**
+ * Cover letters: versioned derived artifacts like resumes. Body is Markdown
+ * prose composed offline from the Brain + job (optionally AI-drafted).
+ */
+export const coverLetterVersions = sqliteTable("cover_letter_versions", {
+  id: id(),
+  title: text("title").notNull(),
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "set null" }),
+  parentId: integer("parent_id"), // version lineage (self-reference)
+  body: text("body").notNull(),
+  renderedMdPath: text("rendered_md_path").notNull().default(""),
+  renderedHtmlPath: text("rendered_html_path").notNull().default(""),
+  aiAssisted: integer("ai_assisted", { mode: "boolean" }).notNull().default(false),
+  createdAt: createdAt(),
+});
+
+/**
+ * Career Brain suggestions: reusable ask-the-user infrastructure. When the
+ * system spots something plausibly missing from the Brain (e.g. a skill a job
+ * asks for), it records a suggestion instead of assuming. The user's answers
+ * — and only those — flow back into the Brain. Dismissed suggestions are
+ * remembered so the same question is never re-asked.
+ */
+export const SUGGESTION_STATUSES = ["pending", "accepted", "dismissed"] as const;
+export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
+
+export type SuggestionAnswers = {
+  usedIt: boolean;
+  where?: string;
+  howOften?: string;
+  accomplishment?: string;
+  /** Experience to attach the evidence achievement to, if any. */
+  experienceId?: number | null;
+  proficiency?: number; // 1..5
+};
+
+export const brainSuggestions = sqliteTable("brain_suggestions", {
+  id: id(),
+  type: text("type").notNull().default("skill"), // future: experience, certification, ...
+  /** Normalized display name of the missing item (dedupe key together with type). */
+  skillName: text("skill_name").notNull(),
+  sourceJobId: integer("source_job_id").references(() => jobs.id, {
+    onDelete: "set null",
+  }),
+  status: text("status").$type<SuggestionStatus>().notNull().default("pending"),
+  answers: text("answers", { mode: "json" }).$type<SuggestionAnswers>(),
+  createdAt: createdAt(),
+  resolvedAt: integer("resolved_at", { mode: "timestamp_ms" }),
+});
+
 /** Audit trail of every AI call — exactly what left the machine, and when. */
 export const aiGenerations = sqliteTable("ai_generations", {
   id: id(),
