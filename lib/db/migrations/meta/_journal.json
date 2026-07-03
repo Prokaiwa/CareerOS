@@ -15,6 +15,13 @@
       "when": 1783064699258,
       "tag": "0001_wild_the_watchers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783083825732,
+      "tag": "0002_ambitious_power_man",
+      "breakpoints": true
     }
   ]
 }

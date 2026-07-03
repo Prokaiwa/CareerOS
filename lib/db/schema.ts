@@ -382,6 +382,28 @@ export const brainSuggestions = sqliteTable("brain_suggestions", {
   resolvedAt: integer("resolved_at", { mode: "timestamp_ms" }),
 });
 
+/**
+ * AI Coach conversations. History stays local — these tables are part of the
+ * user's data like everything else (included in export/backup).
+ */
+export const coachConversations = sqliteTable("coach_conversations", {
+  id: id(),
+  title: text("title").notNull().default("New conversation"),
+  createdAt: createdAt(),
+});
+
+export const coachMessages = sqliteTable("coach_messages", {
+  id: id(),
+  conversationId: integer("conversation_id")
+    .notNull()
+    .references(() => coachConversations.id, { onDelete: "cascade" }),
+  role: text("role").$type<"user" | "assistant">().notNull(),
+  content: text("content").notNull(),
+  /** Job the message was asked about, when the user focused the coach on one. */
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
 /** Audit trail of every AI call — exactly what left the machine, and when. */
 export const aiGenerations = sqliteTable("ai_generations", {
   id: id(),

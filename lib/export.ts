@@ -36,6 +36,8 @@ export function exportAll(): ExportResult {
   const resumeVersions = db.select().from(tables.resumeVersions).all();
   const coverLetterVersions = db.select().from(tables.coverLetterVersions).all();
   const brainSuggestions = db.select().from(tables.brainSuggestions).all();
+  const coachConversations = db.select().from(tables.coachConversations).all();
+  const coachMessages = db.select().from(tables.coachMessages).all();
   const aiGenerations = db.select().from(tables.aiGenerations).all();
   const settings = db.select().from(tables.settings).all();
 
@@ -61,6 +63,8 @@ export function exportAll(): ExportResult {
       resumeVersions,
       coverLetterVersions,
       brainSuggestions,
+      coachConversations,
+      coachMessages,
       aiGenerations,
       settings,
     },
