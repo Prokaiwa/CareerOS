@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# your data stays yours — never committed
+data/
+storage/
+backups/
+
+# env (real keys live here; .env.example is the template)
+.env
+.env.local
+
+# extension build output
+extension/dist/
+
+# misc
+*.tsbuildinfo
+.DS_Store
