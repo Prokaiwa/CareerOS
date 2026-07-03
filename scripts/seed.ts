@@ -61,7 +61,7 @@ async function main() {
       ],
       summary:
         "Full-stack engineer passionate about scalable systems and developer experience. 8+ years building high-performance distributed systems and leading platform teams.",
-      updatedAt: now.getTime(),
+      updatedAt: now,
     })
     .run();
   counts.profile += 1;
@@ -79,8 +79,8 @@ async function main() {
       description:
         "Leading infrastructure and developer tools initiatives on the platform team.",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.experiences.id })
     .get();
@@ -97,8 +97,8 @@ async function main() {
       description:
         "Built and scaled backend APIs for mobile and web applications serving 2M+ users.",
       sortOrder: 1,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.experiences.id })
     .get();
@@ -113,8 +113,8 @@ async function main() {
       text: "Redesigned core API gateway architecture using gRPC, reducing latency and enabling 5x throughput increase",
       impactMetric: "35% latency reduction, 5x throughput",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -126,8 +126,8 @@ async function main() {
       text: "Launched internal platform for distributed trace collection, reducing MTTR by 60%",
       impactMetric: "60% MTTR reduction",
       sortOrder: 1,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -139,8 +139,8 @@ async function main() {
       text: "Mentored 3 junior engineers to senior promotion within 18 months",
       impactMetric: "3 promotions",
       sortOrder: 2,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -155,8 +155,8 @@ async function main() {
       text: "Built real-time notification service handling 50K+ events/second with 99.99% uptime",
       impactMetric: "50K events/sec, 99.99% uptime",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -168,8 +168,8 @@ async function main() {
       text: "Implemented comprehensive database sharding strategy, reducing query times from 500ms to 50ms",
       impactMetric: "10x query time reduction",
       sortOrder: 1,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -181,8 +181,8 @@ async function main() {
       text: "Led migration of legacy monolith to microservices, enabling 20% feature velocity increase",
       impactMetric: "20% velocity increase",
       sortOrder: 2,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -201,8 +201,8 @@ async function main() {
       startDate: "2019-06-01",
       endDate: null,
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.projects.id })
     .get();
@@ -214,8 +214,8 @@ async function main() {
       text: "Grew to 3K+ GitHub stars and 50+ external contributors",
       impactMetric: "3K stars",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -227,8 +227,8 @@ async function main() {
       text: "Published in 5 international tech conferences, establishing thought leadership",
       impactMetric: "5 talks",
       sortOrder: 1,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.achievements.id })
     .get();
@@ -258,8 +258,8 @@ async function main() {
         proficiency: skill.proficiency,
         yearsOfExperience: 5,
         sortOrder: 0,
-        createdAt: now.getTime(),
-        updatedAt: now.getTime(),
+        createdAt: now,
+        updatedAt: now,
       })
       .returning({ id: tables.skills.id })
       .get();
@@ -293,8 +293,8 @@ async function main() {
       endDate: "2016-05-15",
       honors: "Summa Cum Laude",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .run();
   counts.education += 1;
@@ -308,8 +308,8 @@ async function main() {
       expiryDate: "2025-03-10",
       credentialUrl: "https://example.com/cka-cert",
       sortOrder: 0,
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .run();
   counts.certifications += 1;
@@ -331,7 +331,7 @@ async function main() {
         "Impact on product direction, team leadership, technical depth",
       narrative:
         "Seeking leadership roles at high-growth companies building distributed systems and developer tools where I can drive technical vision and mentor the next generation.",
-      updatedAt: now.getTime(),
+      updatedAt: now,
     })
     .run();
   counts.careerGoals += 1;
@@ -345,8 +345,8 @@ async function main() {
       industry: "FinTech",
       location: "San Francisco, CA",
       notes: "Series B, 150 employees, strong engineering culture",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.companies.id })
     .get();
@@ -359,8 +359,8 @@ async function main() {
       industry: "Developer Tools",
       location: "Remote",
       notes: "Seed stage, 12 employees, strong founder pedigree",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.companies.id })
     .get();
@@ -384,8 +384,8 @@ async function main() {
       source: "linkedin",
       status: "saved",
       notes: "Interesting company, expanding engineering org",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.jobs.id })
     .get();
@@ -395,7 +395,7 @@ async function main() {
       jobId: job1.id,
       fromStatus: null,
       toStatus: "saved",
-      occurredAt: now.getTime(),
+      occurredAt: now,
     })
     .run();
   counts.jobStageEvents += 1;
@@ -414,8 +414,8 @@ async function main() {
       status: "applied",
       appliedAt: appliedDateStr,
       notes: "Great founders, high upside potential",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.jobs.id })
     .get();
@@ -425,7 +425,7 @@ async function main() {
       jobId: job2.id,
       fromStatus: null,
       toStatus: "applied",
-      occurredAt: now.getTime(),
+      occurredAt: now,
     })
     .run();
   counts.jobStageEvents += 1;
@@ -444,8 +444,8 @@ async function main() {
       status: "interviewing",
       appliedAt: appliedDateStr,
       notes: "Phone screen passed, onsite scheduled for next week",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.jobs.id })
     .get();
@@ -455,7 +455,7 @@ async function main() {
       jobId: job3.id,
       fromStatus: null,
       toStatus: "interviewing",
-      occurredAt: now.getTime(),
+      occurredAt: now,
     })
     .run();
   counts.jobStageEvents += 1;
@@ -473,8 +473,8 @@ async function main() {
       role: "VP of Engineering",
       linkedinUrl: "https://linkedin.com/in/sarahchen",
       notes: "Met at React conf 2024, discussed company direction",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.contacts.id })
     .get();
@@ -488,8 +488,8 @@ async function main() {
       role: "Engineering Manager",
       linkedinUrl: "https://linkedin.com/in/jameswilson",
       notes: "Former colleague at StartupXYZ, now at Big Tech",
-      createdAt: now.getTime(),
-      updatedAt: now.getTime(),
+      createdAt: now,
+      updatedAt: now,
     })
     .returning({ id: tables.contacts.id })
     .get();
@@ -510,7 +510,7 @@ async function main() {
         .split("T")[0],
       notes: "Discussed open roles and product roadmap",
       followUpAt: followUpDateStr,
-      createdAt: now.getTime(),
+      createdAt: now,
     })
     .run();
   counts.interactions += 1;
