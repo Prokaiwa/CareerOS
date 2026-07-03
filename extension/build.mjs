@@ -20,6 +20,16 @@ await build({
   logLevel: "info",
 });
 
+await build({
+  entryPoints: [path.join(__dirname, "src/sidebar.ts")],
+  bundle: true,
+  outfile: path.join(outdir, "sidebar.js"),
+  format: "iife",
+  target: "chrome120",
+  sourcemap: false,
+  logLevel: "info",
+});
+
 for (const file of ["manifest.json", "popup.html", "popup.css"]) {
   cpSync(path.join(__dirname, file), path.join(outdir, file));
 }

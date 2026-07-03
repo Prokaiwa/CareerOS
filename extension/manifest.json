@@ -1,11 +1,30 @@
 {
   "manifest_version": 3,
   "name": "CareerOS Clipper",
-  "version": "0.1.0",
-  "description": "Clip job postings from any page straight into your local CareerOS pipeline.",
+  "version": "0.2.0",
+  "description": "Job-fit sidebar and clipper for your local CareerOS: scores postings against your Career Brain, right on the page.",
   "action": {
     "default_popup": "popup.html"
   },
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "https://*.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.glassdoor.com/*",
+    "https://*.myworkdayjobs.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*",
+        "https://*.indeed.com/*",
+        "https://*.glassdoor.com/*",
+        "https://*.myworkdayjobs.com/*"
+      ],
+      "js": ["sidebar.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }
