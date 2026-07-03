@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CareerOS Clipper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Career<span class="accent">OS</span> Clipper</h1>
+    </header>
+
+    <section id="settings">
+      <label>
+        API URL
+        <input id="apiUrl" type="text" placeholder="http://localhost:3000" />
+      </label>
+      <label>
+        Token
+        <input id="token" type="password" placeholder="paste from Settings page" />
+      </label>
+      <div class="row">
+        <button id="testConn" type="button">Test connection</button>
+        <span id="connStatus" class="status"></span>
+      </div>
+    </section>
+
+    <hr />
+
+    <section id="clip">
+      <button id="extractBtn" type="button" class="primary">Clip this page</button>
+
+      <div id="fields" hidden>
+        <label>
+          Title
+          <input id="f-title" type="text" />
+        </label>
+        <label>
+          Company
+          <input id="f-company" type="text" />
+        </label>
+        <label>
+          URL
+          <input id="f-url" type="text" />
+        </label>
+        <label>
+          Location
+          <input id="f-location" type="text" />
+        </label>
+        <label>
+          Salary
+          <input id="f-salary" type="text" />
+        </label>
+        <label>
+          Description
+          <textarea id="f-description" rows="6"></textarea>
+        </label>
+        <button id="saveBtn" type="button" class="primary">Save to CareerOS</button>
+      </div>
+
+      <div id="result" class="status"></div>
+    </section>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
