@@ -2,6 +2,8 @@ import Link from "next/link";
 import { count, eq, isNotNull } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db, tables } from "@/lib/db";
+import { getPendingSuggestions } from "@/lib/suggestions";
+import SuggestionsPanel from "@/components/suggestions/SuggestionsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,23 @@ function countOf(table: SQLiteTable) {
 }
 
 export default function Dashboard() {
+  const suggestions = getPendingSuggestions();
+  const experiences = db
+    .select()
+    .from(tables.experiences)
+    .all()
+    .map((e) => ({
+      id: e.id,
+      company: e.company,
+      title: e.title,
+      employmentType: e.employmentType,
+      location: e.location,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      description: e.description,
+      sortOrder: e.sortOrder,
+    }));
+
   const stats = [
     { label: "Jobs tracked", value: countOf(tables.jobs), href: "/jobs" },
     {
@@ -56,6 +75,12 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
+      {suggestions.length > 0 && (
+        <div className="mt-8">
+          <SuggestionsPanel suggestions={suggestions} experiences={experiences} />
+        </div>
+      )}
+
       <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
         <h2 className="font-semibold">Getting started</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-stone-600">

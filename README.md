@@ -65,12 +65,22 @@ Generate tailored resumes directly from your Career Brain for any job:
 - Store resume versions with lineage; every version is immutable and audit-logged.
 - Render as Markdown or HTML.
 
+### Cover Letters
+Generate versioned cover letters from the same Career Brain facts: a deterministic offline draft (achievements with metrics, matched skills, goal-aligned close), optionally redrafted by AI from those same facts — never invented ones. Print-ready HTML + Markdown, with lineage like resumes.
+
+### Career Match Engine
+Every job is scored against your Career Brain by deterministic, fully-offline heuristics — overall fit, interview-chance estimate, skill match, experience match, career-goal alignment (all 0–10), stretch factor, and a 1–5 star recommendation, with per-score reasoning, strengths (cited from your achievements), and missing skills. Scores recompute live whenever the Brain or a job changes. AI, when configured, may polish the reasoning prose but can never alter a number.
+
+### Career Brain Suggestions
+When a job asks for a skill your Brain doesn't have, CareerOS asks instead of assuming: "Have you ever used it?" — your answers (where, how often, what you accomplished) are written verbatim into the Brain as a skill plus evidence achievement. Say no once and it's never asked again. Nothing is ever invented.
+
 ### Browser Extension (Build & Load)
-Clip job postings directly from LinkedIn, Greenhouse, or any careers page:
 ```bash
 npm run build:ext
 ```
-Then load `extension/dist` as an unpacked extension (chrome://extensions). Paste the auth token from **Settings** into the extension; it will sync jobs and save them to your local app.
+Then load `extension/dist` as an unpacked extension (chrome://extensions). Paste the auth token from **Settings** into the extension popup.
+- **Clipper (popup):** save any job posting into your pipeline from any page.
+- **Sidebar (v2):** on LinkedIn, Indeed, Glassdoor, and Workday postings, a Shadow-DOM sidebar shows fit scores, stars, stretch, strengths, missing skills with inline "add to Brain" Q&A, whether you already saved/applied, and resume/cover-letter readiness — dark-mode aware, powered entirely by your local instance.
 
 ### Contacts CRM & Follow-ups
 Manage professional contacts with email, phone, LinkedIn URL, and notes. Link contacts to companies. Log interactions (email, call, coffee chat) and set follow-up reminders. One interaction per contact per job or just standalone.
@@ -126,12 +136,11 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Roadmap
 
-### Near-term (v0.2)
-- [ ] Resume version history & lineage UI.
-- [ ] Job stage funnel and time-in-stage analytics.
-- [ ] Extension v2: auto-detect job fit against your Career Brain, auto-fill application forms.
+### Near-term (v0.3)
+- [ ] Extension: application form auto-fill from the Career Brain; application memory (capture submitted screening answers for reuse).
+- [ ] Job stage funnel and time-in-stage analytics dashboard.
 
-### Medium-term (v0.3)
+### Medium-term
 - [ ] **AI Coach:** Chat with an AI agent grounded in your Career Brain to prepare for interviews, brainstorm career moves, or draft application materials.
 - [ ] **Company Intelligence:** Aggregate salary data, culture reviews, growth trajectories for companies you're tracking.
 - [ ] **Gmail integration** (optional): Archive job-related emails to your job records.

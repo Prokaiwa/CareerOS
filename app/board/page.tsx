@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 import { JOB_STATUSES, type JobStatus } from "@/lib/db/schema";
 import { MoveSelect } from "@/components/jobs/MoveSelect";
+import { loadBrain, scoreJob } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +29,28 @@ export default async function BoardPage() {
       companyName: tables.companies.name,
       status: tables.jobs.status,
       updatedAt: tables.jobs.updatedAt,
+      description: tables.jobs.description,
+      location: tables.jobs.location,
+      salary: tables.jobs.salary,
     })
     .from(tables.jobs)
     .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
     .orderBy(desc(tables.jobs.createdAt))
     .all();
+
+  const brain = loadBrain();
+  const fitByJob = new Map(
+    jobs.map((job) => [
+      job.id,
+      scoreJob(brain, {
+        title: job.title,
+        description: job.description,
+        company: job.companyName ?? undefined,
+        location: job.location,
+        salary: job.salary,
+      }).overallFit,
+    ]),
+  );
 
   const latestEventByJob = new Map<number, number>();
   for (const job of jobs) {
@@ -69,9 +87,14 @@ export default async function BoardPage() {
             <div className="space-y-2">
               {col.jobs.map((job) => (
                 <div key={job.id} className="rounded-lg border border-stone-200 bg-white p-3 shadow-sm">
-                  <Link href={`/jobs/${job.id}`} className="text-sm font-medium text-emerald-700 hover:underline">
-                    {job.title}
-                  </Link>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link href={`/jobs/${job.id}`} className="text-sm font-medium text-emerald-700 hover:underline">
+                      {job.title}
+                    </Link>
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+                      {fitByJob.get(job.id)?.toFixed(1)}
+                    </span>
+                  </div>
                   <p className="mt-0.5 text-xs text-stone-600">{job.companyName ?? "—"}</p>
                   <p className="mt-1 text-[11px] text-stone-400">
                     {daysSince(latestEventByJob.get(job.id) ?? job.updatedAt.getTime())}d in stage

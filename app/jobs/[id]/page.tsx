@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 import { StatusBadge } from "@/components/jobs/StatusBadge";
 import { MoveSelect } from "@/components/jobs/MoveSelect";
 import { JobEditForm } from "@/components/jobs/JobEditForm";
 import { InterviewsSection } from "@/components/jobs/InterviewsSection";
 import { AnswersSection } from "@/components/jobs/AnswersSection";
+import { DocumentActions } from "@/components/jobs/DocumentActions";
+import SuggestionsPanel from "@/components/suggestions/SuggestionsPanel";
+import { getPendingSuggestions } from "@/lib/suggestions";
+import { loadBrain, scoreJob } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +51,49 @@ export default async function JobDetailPage({
     .orderBy(tables.applicationAnswers.createdAt)
     .all();
 
+  // Live score — recomputed each render so Brain/job edits show immediately.
+  const brain = loadBrain();
+  const report = scoreJob(brain, {
+    title: job.title,
+    description: job.description,
+    company: company?.name,
+    location: job.location,
+    salary: job.salary,
+  });
+
+  const latestResume = db
+    .select()
+    .from(tables.resumeVersions)
+    .where(eq(tables.resumeVersions.jobId, id))
+    .orderBy(desc(tables.resumeVersions.createdAt))
+    .limit(1)
+    .get();
+  const latestLetter = db
+    .select()
+    .from(tables.coverLetterVersions)
+    .where(eq(tables.coverLetterVersions.jobId, id))
+    .orderBy(desc(tables.coverLetterVersions.createdAt))
+    .limit(1)
+    .get();
+
+  // Suggestions relevant here: pending ones for this job's missing skills,
+  // or ones originally spotted on this job.
+  const missingLower = new Set(report.missingSkills.map((s) => s.toLowerCase()));
+  const jobSuggestions = getPendingSuggestions().filter(
+    (s) => missingLower.has(s.skillName.toLowerCase()) || s.sourceJobId === id,
+  );
+  const experiencesForPanel = brain.experiences.map((e) => ({
+    id: e.id,
+    company: e.company,
+    title: e.title,
+    employmentType: e.employmentType,
+    location: e.location,
+    startDate: e.startDate,
+    endDate: e.endDate,
+    description: e.description,
+    sortOrder: e.sortOrder,
+  }));
+
   return (
     <div className="max-w-4xl">
       <Link href="/jobs" className="text-sm text-emerald-700 hover:underline">
@@ -75,16 +122,135 @@ export default async function JobDetailPage({
         />
 
         <div className="rounded-lg border border-stone-200 bg-white p-5">
-          <h2 className="font-semibold">Fit scoring</h2>
-          {job.fitScore != null ? (
-            <div className="mt-2 text-sm">
-              <p className="text-stone-800">Score: {job.fitScore}</p>
-              {job.fitRationale && <p className="mt-1 text-stone-600">{job.fitRationale}</p>}
+          <div className="flex items-start justify-between">
+            <h2 className="font-semibold">Career match</h2>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                report.stretchFactor === "low"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : report.stretchFactor === "medium"
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-red-50 text-red-700"
+              }`}
+            >
+              {report.stretchFactor} stretch
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-4">
+            <div>
+              <span className="text-3xl font-bold">{report.overallFit.toFixed(1)}</span>
+              <span className="text-sm text-stone-400"> /10</span>
+              <div className="text-xs text-stone-500">Overall fit</div>
             </div>
-          ) : (
-            <p className="mt-1 text-sm text-stone-500">Fit scoring arrives with extension v2.</p>
+            <div className="text-lg text-amber-500" title={report.reasoning.recommendation}>
+              {"★".repeat(report.recommendation)}
+              <span className="text-stone-200">{"★".repeat(5 - report.recommendation)}</span>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-4">
+            {(
+              [
+                ["Interview chance", report.interviewChance],
+                ["Skill match", report.skillMatch],
+                ["Experience", report.experienceMatch],
+                ["Goal alignment", report.careerGoalAlignment],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <div className="flex justify-between text-xs text-stone-500">
+                  <span>{label}</span>
+                  <span className="font-semibold text-stone-700">{value.toFixed(1)}</span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-100">
+                  <div
+                    className="h-full rounded-full bg-emerald-500"
+                    style={{ width: `${Math.min(100, value * 10)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          {report.strengths.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                Strengths
+              </h3>
+              <ul className="mt-2 space-y-1">
+                {report.strengths.slice(0, 5).map((s) => (
+                  <li key={s.label} className="text-sm">
+                    <span className="font-medium text-stone-800">{s.label}</span>
+                    <span className="text-stone-500"> — {s.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
+          {report.missingSkills.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                Missing skills
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {report.missingSkills.map((s) => (
+                  <span
+                    key={s}
+                    className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <details className="mt-4">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-stone-400">
+              Why these scores
+            </summary>
+            <ul className="mt-2 space-y-1 text-xs text-stone-500">
+              {(
+                [
+                  ["Overall fit", report.reasoning.overallFit],
+                  ["Interview chance", report.reasoning.interviewChance],
+                  ["Skills", report.reasoning.skillMatch],
+                  ["Experience", report.reasoning.experienceMatch],
+                  ["Goals", report.reasoning.careerGoalAlignment],
+                  ["Stretch", report.reasoning.stretchFactor],
+                  ["Recommendation", report.reasoning.recommendation],
+                ] as const
+              ).map(([label, text]) => (
+                <li key={label}>
+                  <span className="font-medium text-stone-600">{label}:</span> {text}
+                </li>
+              ))}
+            </ul>
+          </details>
         </div>
+
+        <div className="rounded-lg border border-stone-200 bg-white p-5">
+          <h2 className="font-semibold">Documents</h2>
+          <p className="mt-1 text-xs text-stone-500">
+            Generated from your Career Brain, tailored to this job&apos;s description.
+          </p>
+          <div className="mt-3">
+            <DocumentActions
+              jobId={job.id}
+              resume={
+                latestResume
+                  ? { id: latestResume.id, createdAt: latestResume.createdAt.toISOString() }
+                  : null
+              }
+              coverLetter={
+                latestLetter
+                  ? { id: latestLetter.id, createdAt: latestLetter.createdAt.toISOString() }
+                  : null
+              }
+            />
+          </div>
+        </div>
+
+        {jobSuggestions.length > 0 && (
+          <SuggestionsPanel suggestions={jobSuggestions} experiences={experiencesForPanel} />
+        )}
 
         <div className="rounded-lg border border-stone-200 bg-white p-5">
           <h2 className="font-semibold">Stage history</h2>

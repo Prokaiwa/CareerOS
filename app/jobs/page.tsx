@@ -4,6 +4,7 @@ import { db, tables } from "@/lib/db";
 import { JOB_STATUSES, type JobStatus } from "@/lib/db/schema";
 import { StatusBadge } from "@/components/jobs/StatusBadge";
 import { AddJobForm } from "@/components/jobs/AddJobForm";
+import { loadBrain, scoreJob } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,38 @@ export default async function JobsPage({
       location: tables.jobs.location,
       deadline: tables.jobs.deadline,
       appliedAt: tables.jobs.appliedAt,
+      description: tables.jobs.description,
+      salary: tables.jobs.salary,
     })
     .from(tables.jobs)
     .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
     .where(status ? eq(tables.jobs.status, status) : undefined)
     .orderBy(desc(tables.jobs.createdAt))
     .all();
+
+  // Scores recompute on every render, so they stay in sync with the Career
+  // Brain and job descriptions automatically — no cache to invalidate.
+  const brain = loadBrain();
+  const jobIdsWithResume = new Set(
+    db.select({ jobId: tables.resumeVersions.jobId }).from(tables.resumeVersions).all()
+      .map((r) => r.jobId),
+  );
+  const jobIdsWithLetter = new Set(
+    db.select({ jobId: tables.coverLetterVersions.jobId }).from(tables.coverLetterVersions).all()
+      .map((r) => r.jobId),
+  );
+  const scored = rows.map((job) => ({
+    job,
+    report: scoreJob(brain, {
+      title: job.title,
+      description: job.description,
+      company: job.companyName ?? undefined,
+      location: job.location,
+      salary: job.salary,
+    }),
+    resumeReady: jobIdsWithResume.has(job.id),
+    letterReady: jobIdsWithLetter.has(job.id),
+  }));
 
   const tabs = [{ label: "All", value: undefined }, ...JOB_STATUSES.map((s) => ({ label: s, value: s }))];
 
@@ -74,24 +101,62 @@ export default async function JobsPage({
                 <th className="px-4 py-2 font-medium">Title</th>
                 <th className="px-4 py-2 font-medium">Company</th>
                 <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Location</th>
+                <th className="px-4 py-2 font-medium">Fit</th>
+                <th className="px-4 py-2 font-medium">Rec</th>
+                <th className="px-4 py-2 font-medium">Interview</th>
+                <th className="px-4 py-2 font-medium">Missing</th>
+                <th className="px-4 py-2 font-medium">Docs</th>
                 <th className="px-4 py-2 font-medium">Applied</th>
                 <th className="px-4 py-2 font-medium">Deadline</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((job) => (
+              {scored.map(({ job, report, resumeReady, letterReady }) => (
                 <tr key={job.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                   <td className="px-4 py-2.5">
                     <Link href={`/jobs/${job.id}`} className="font-medium text-emerald-700 hover:underline">
                       {job.title}
                     </Link>
+                    <div className="text-xs text-stone-400">{job.location || ""}</div>
                   </td>
                   <td className="px-4 py-2.5 text-stone-600">{job.companyName ?? "—"}</td>
                   <td className="px-4 py-2.5">
                     <StatusBadge status={job.status} />
                   </td>
-                  <td className="px-4 py-2.5 text-stone-600">{job.location || "—"}</td>
+                  <td className="px-4 py-2.5 font-semibold text-stone-700">
+                    {report.overallFit.toFixed(1)}
+                  </td>
+                  <td className="px-4 py-2.5 text-amber-500" title={report.reasoning.recommendation}>
+                    {"★".repeat(report.recommendation)}
+                    <span className="text-stone-300">{"★".repeat(5 - report.recommendation)}</span>
+                  </td>
+                  <td className="px-4 py-2.5 text-stone-600">{report.interviewChance.toFixed(1)}</td>
+                  <td className="px-4 py-2.5">
+                    {report.missingSkills.length > 0 ? (
+                      <span
+                        className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700"
+                        title={report.missingSkills.join(", ")}
+                      >
+                        {report.missingSkills.length}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-stone-400">0</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-xs">
+                    <span
+                      className={resumeReady ? "text-emerald-600" : "text-stone-300"}
+                      title={resumeReady ? "Resume ready" : "No resume yet"}
+                    >
+                      R{resumeReady ? "✓" : "·"}
+                    </span>{" "}
+                    <span
+                      className={letterReady ? "text-emerald-600" : "text-stone-300"}
+                      title={letterReady ? "Cover letter ready" : "No cover letter yet"}
+                    >
+                      CL{letterReady ? "✓" : "·"}
+                    </span>
+                  </td>
                   <td className="px-4 py-2.5 text-stone-600">{job.appliedAt || "—"}</td>
                   <td className="px-4 py-2.5 text-stone-600">{job.deadline || "—"}</td>
                 </tr>
