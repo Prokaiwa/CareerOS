@@ -390,6 +390,82 @@ export function stageEventsSince(since: Date) {
     .all();
 }
 
+/**
+ * Per applied job: status, dates, latest stage-event time, interview count.
+ * Powers response/interview rates and staleness detection in the weekly review.
+ */
+export function appliedJobsStats() {
+  const applied = db
+    .select({
+      id: tables.jobs.id,
+      title: tables.jobs.title,
+      status: tables.jobs.status,
+      appliedAt: tables.jobs.appliedAt,
+      companyName: tables.companies.name,
+    })
+    .from(tables.jobs)
+    .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
+    .where(isNotNull(tables.jobs.appliedAt))
+    .all();
+  return applied.map((job) => {
+    const lastEvent = db
+      .select()
+      .from(tables.jobStageEvents)
+      .where(eq(tables.jobStageEvents.jobId, job.id))
+      .orderBy(desc(tables.jobStageEvents.occurredAt))
+      .limit(1)
+      .get();
+    const interviewCount = db
+      .select()
+      .from(tables.interviews)
+      .where(eq(tables.interviews.jobId, job.id))
+      .all().length;
+    return {
+      ...job,
+      lastEventAt: lastEvent?.occurredAt ?? null,
+      interviewCount,
+    };
+  });
+}
+
+/** Lightweight all-jobs listing (id/title/company/status/fit/deadline/description). */
+export function allJobsLight() {
+  return db
+    .select({
+      id: tables.jobs.id,
+      title: tables.jobs.title,
+      status: tables.jobs.status,
+      fitScore: tables.jobs.fitScore,
+      deadline: tables.jobs.deadline,
+      description: tables.jobs.description,
+      companyName: tables.companies.name,
+    })
+    .from(tables.jobs)
+    .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
+    .all();
+}
+
+/** Career Brain growth since a moment: new skills/achievements, accepted suggestions. */
+export function brainDeltasSince(since: Date) {
+  const newSkills = db
+    .select()
+    .from(tables.skills)
+    .where(gte(tables.skills.createdAt, since))
+    .all().length;
+  const newAchievements = db
+    .select()
+    .from(tables.achievements)
+    .where(gte(tables.achievements.createdAt, since))
+    .all().length;
+  const acceptedSuggestions = db
+    .select()
+    .from(tables.brainSuggestions)
+    .where(eq(tables.brainSuggestions.status, "accepted"))
+    .all()
+    .filter((s) => s.resolvedAt && s.resolvedAt >= since).length;
+  return { newSkills, newAchievements, acceptedSuggestions };
+}
+
 /** Interactions with a follow-up date set, for follow-up surfacing. */
 export function interactionsWithFollowUps() {
   return db
