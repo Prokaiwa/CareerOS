@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 import { RegenerateButton } from "@/components/resumes/RegenerateButton";
+import { ResumeAdvicePanel } from "@/components/intelligence/ResumeAdvicePanel";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -201,6 +203,8 @@ export default async function ResumeDetailPage({
             </p>
           </section>
         )}
+
+        <ResumeAdvicePanel resumeVersionId={row.id} aiEnabled={config.ai.enabled} />
       </div>
     </div>
   );

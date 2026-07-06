@@ -22,11 +22,14 @@ UI-independent **engines** under `lib/`.
               derives from             │              grounds
       ┌───────────────┬────────────────┼────────────────┬─────────────┐
       ▼               ▼                ▼                ▼             ▼
-┌───────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  ┌─────────┐
-│  RESUME   │  │ COVER LETTER │  │ CAREER MATCH │  │ SUGGESTION │  │ (future) │
-│  ENGINE   │  │   ENGINE     │  │   ENGINE     │  │   ENGINE   │  │ AI COACH │
-│lib/resume │  │lib/coverletter│ │ lib/scoring  │  │lib/sugges- │  │          │
-│           │  │              │  │              │  │  tions.ts  │  │          │
+┌───────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  ┌──────────────┐
+│  RESUME   │  │ COVER LETTER │  │ CAREER MATCH │  │ SUGGESTION │  │   CAREER     │
+│  ENGINE   │  │   ENGINE     │  │   ENGINE     │  │   ENGINE   │  │ INTELLIGENCE │
+│lib/resume │  │lib/coverletter│ │ lib/scoring  │  │lib/sugges- │  │lib/intelli-  │
+│           │  │              │  │              │  │  tions.ts  │  │ gence (coach,│
+│           │  │              │  │              │  │            │  │ gaps, advice,│
+│           │  │              │  │              │  │            │  │ interview,   │
+│           │  │              │  │              │  │            │  │ weekly review)│
 └─────┬─────┘  └──────┬───────┘  └──────┬──────┘  └─────┬──────┘  └────┬─────┘
       │  optional     │  optional       │ reasoning     │ writes back  │
       │  rephrase     │  redraft        │ prose only    │ to Brain     │
@@ -124,12 +127,38 @@ client components mutate through `app/api/*` route handlers, which use
 page, and board are recomputed per render, so Brain/job/artifact changes are
 always reflected without cache invalidation.
 
-### Future AI Coach (vision)
-Will be a conversation loop that assembles context from the Brain + pipeline
-(local retrieval), calls the AI Layer, and proposes actions routed through
-existing engines — e.g. Brain updates via the Suggestion Engine, materials
-via Resume/Cover Letter engines. It adds **no new write paths**: the whole
-point of the engine layer is that a coach can drive it.
+### Career Intelligence Layer (`lib/intelligence/`) — see ADR-012
+The single entry point for all AI-powered reasoning, present and future.
+Structure:
+
+- `context.ts` — **the only DB touchpoint for AI reasoning.** Assembles
+  opt-in, capped context sections (brain, goals, job + fit report via the
+  Career Match Engine, pipeline summary, contacts, interviews, resume
+  content, pending suggestions) and renders them to compact prompt text
+  that marks Brain facts as the only source of truth.
+- `strategy.ts` — deterministic Gap Analysis (`GapReport`: missing skills
+  with effort/impact heuristics, resume coverage, evidence-cited next
+  steps), Application Advisor (`ApplicationAdvice`: verdict, priority,
+  tailor/network/learn-first, ROI, follow-up strategy), Weekly Review
+  (`WeeklyReview`: submissions, response/interview rates, movement,
+  follow-ups due, attention list, Brain deltas, recurring missing skills).
+- `advisor.ts` — Resume Advisor over an immutable version's content JSON.
+- `interview.ts` — Interview Coach baseline (topics, question banks,
+  verbatim-Brain STAR stories, checklist).
+- `coach.ts` — conversational coach; conversation history is local feature
+  state (`coach_*` tables); reasoning context still flows through
+  context.ts; never writes to Brain tables.
+- `prompts/` — every prompt in the product, as builder functions sharing
+  the grounding rules (facts-only, no fabrication, numbers fixed, say
+  what's missing, distinguish facts from suggestions).
+
+Every engine returns a complete deterministic result offline; AI may fill
+only designated narrative fields (`aiNarrative`/`aiSummary`) or sharpen
+question lists via the `?ai=1` route pattern, always falling back cleanly.
+Consumers: `/coach`, the job page (advice + gaps + interview prep), the
+resume page (advisor), the dashboard Intelligence section (weekly review,
+deterministic only — no AI on render), and any future feature (company
+intelligence, onboarding) that needs grounded reasoning.
 
 ## Data flow examples
 
@@ -163,6 +192,10 @@ scores higher.
 ## Extension points (how to add things)
 
 - **New AI provider** → adapter in `lib/ai/`, enum in `lib/config.ts`.
+- **New AI-powered feature** → engine in `lib/intelligence/` consuming
+  `buildContext` (add generic helpers to context.ts if data is missing),
+  prompt builder in `lib/intelligence/prompts/`, deterministic baseline
+  first, `?ai=1` enhancement second.
 - **New derived artifact** → new engine dir mirroring `lib/coverletter/`
   (compose → optional AI → render → immutable store) + thin routes/pages.
 - **New skill vocabulary** → append to `lib/scoring/lexicon.ts`.

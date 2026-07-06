@@ -225,3 +225,38 @@ zero cloud dependency; same-origin app traffic stays frictionless.
 **Consequences.** New extension-facing routes must use the CORS helpers and
 `isValidExtensionAuth`; the cross-origin-write rule (see
 `app/api/suggestions/[id]/route.ts`) is the template.
+
+---
+
+## ADR-012 · One Career Intelligence Layer; context assembly is AI's only DB touchpoint
+
+**Decision.** All AI-powered reasoning lives in `lib/intelligence/`. Its
+`context.ts` is the only module in the layer that queries the database:
+engines (gap analysis, application advisor, weekly review, resume advisor,
+interview coach, the conversational coach) request opt-in, capped context
+sections instead of running their own SQL. All prompts live in
+`lib/intelligence/prompts/` behind builder functions that embed shared
+grounding rules; none are inlined in components or route handlers.
+
+**Context.** Milestone 8. Multiple AI features arrived at once (coach, gap
+analysis, advisors, weekly review) with more planned (company intelligence,
+onboarding), and each needed overlapping slices of the same data.
+
+**Rationale.** A single context-assembly point gives three guarantees at one
+code location: *privacy* (exactly what data AI reasoning can see, and how
+much of it — lists capped, text truncated for token frugality), *consistency*
+(every feature describes the user identically, marking the Career Brain as
+the only source of truth and fit numbers as fixed), and *reuse* (a new AI
+feature is an engine + a prompt builder, not a new query layer). The
+deterministic-baseline rule (ADR-005) extends to the whole layer: every
+engine returns a complete result offline, and AI may fill only designated
+narrative fields (`aiNarrative`/`aiSummary`) or sharpen question lists,
+never facts, numbers, or evidence.
+
+**Consequences.** `grep 'from "@/lib/db"' lib/intelligence/*.ts` must match
+only `context.ts` and `coach.ts` (whose coach_* tables are feature state,
+not reasoning context — and are still forbidden from touching Brain tables).
+Future AI features must consume `buildContext`/`renderContextForPrompt` and
+add generic helpers to context.ts rather than querying ad hoc. The coach
+directs users to the Career Brain page for new facts — the suggestions flow
+(ADR-003) remains the only programmatic Brain write path.

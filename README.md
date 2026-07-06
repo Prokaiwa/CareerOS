@@ -74,6 +74,15 @@ Every job is scored against your Career Brain by deterministic, fully-offline he
 ### Career Brain Suggestions
 When a job asks for a skill your Brain doesn't have, CareerOS asks instead of assuming: "Have you ever used it?" — your answers (where, how often, what you accomplished) are written verbatim into the Brain as a skill plus evidence achievement. Say no once and it's never asked again. Nothing is ever invented.
 
+### Career Intelligence Layer
+A reusable intelligence layer (`lib/intelligence/`) powers every AI-adjacent feature — all with deterministic offline baselines, AI adding narrative only when configured:
+- **AI Coach** (`/coach`): a conversational coach grounded in your Career Brain and pipeline. It explains fit scores, helps prioritize, and preps you for interviews — it never invents qualifications, never changes scores, and never writes to your Brain. Conversations stay local.
+- **Gap Analysis** (job page): missing qualifications with learning effort and impact estimates, weak areas, resume coverage, and evidence-cited next steps.
+- **Application Advisor** (job page): should you apply, priority, ROI, whether to tailor/network/learn first, and a follow-up strategy.
+- **Resume Advisor** (resume page): strongest/weakest bullets, relevant achievements left out, ordering and skill-balance recommendations — nothing changes automatically.
+- **Interview Coach** (job page): likely topics and questions, strengths with evidence, STAR stories quoted verbatim from your Brain, and a prep checklist.
+- **Weekly Review** (dashboard): applications, response rates, pipeline movement, due follow-ups, jobs needing attention, Brain growth, recurring missing skills, and next week's focus — computed locally on every visit.
+
 ### Browser Extension (Build & Load)
 ```bash
 npm run build:ext
@@ -151,8 +160,8 @@ Future work must follow these unless a revision is recorded in the decision log:
 - [ ] Job stage funnel and time-in-stage analytics dashboard.
 
 ### Medium-term
-- [ ] **AI Coach:** Chat with an AI agent grounded in your Career Brain to prepare for interviews, brainstorm career moves, or draft application materials.
-- [ ] **Company Intelligence:** Aggregate salary data, culture reviews, growth trajectories for companies you're tracking.
+- [ ] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization (built on the intelligence layer).
+- [ ] **Onboarding interview:** guided Career Brain population using the suggestions + intelligence infrastructure.
 - [ ] **Gmail integration** (optional): Archive job-related emails to your job records.
 
 ### Long-term (v1.0)

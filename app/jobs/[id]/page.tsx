@@ -11,6 +11,10 @@ import { DocumentActions } from "@/components/jobs/DocumentActions";
 import SuggestionsPanel from "@/components/suggestions/SuggestionsPanel";
 import { getPendingSuggestions } from "@/lib/suggestions";
 import { loadBrain, scoreJob } from "@/lib/scoring";
+import { analyzeGaps, adviseApplication } from "@/lib/intelligence";
+import { InterviewPrepPanel } from "@/components/intelligence/InterviewPrepPanel";
+import { AiNarrative } from "@/components/intelligence/AiNarrative";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +86,9 @@ export default async function JobDetailPage({
   const jobSuggestions = getPendingSuggestions().filter(
     (s) => missingLower.has(s.skillName.toLowerCase()) || s.sourceJobId === id,
   );
+  const gaps = analyzeGaps(id);
+  const advice = adviseApplication(id);
+
   const experiencesForPanel = brain.experiences.map((e) => ({
     id: e.id,
     company: e.company,
@@ -247,6 +254,132 @@ export default async function JobDetailPage({
             />
           </div>
         </div>
+
+        {advice && (
+          <div className="rounded-lg border border-stone-200 bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">Should you apply?</h2>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    advice.shouldApply === "yes"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : advice.shouldApply === "maybe"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {advice.shouldApply === "not_yet" ? "not yet" : advice.shouldApply}
+                </span>
+                <span className="text-xs text-stone-400">
+                  priority {advice.priority}/5 · {advice.roi} ROI
+                </span>
+              </div>
+            </div>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
+              {advice.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
+              {advice.tailorFirst && (
+                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-stone-600">
+                  Tailor a resume first
+                </span>
+              )}
+              {advice.networkFirst && (
+                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-stone-600">
+                  Network first
+                </span>
+              )}
+              {advice.learnFirst.map((s) => (
+                <span key={s} className="rounded-full bg-stone-100 px-2.5 py-0.5 text-stone-600">
+                  Learn {s} first
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-stone-500">
+              <span className="font-medium text-stone-600">Follow-up:</span>{" "}
+              {advice.followUpStrategy}
+            </p>
+            <AiNarrative
+              url={`/api/jobs/${job.id}/advice`}
+              field="aiNarrative"
+              aiEnabled={config.ai.enabled}
+            />
+          </div>
+        )}
+
+        {gaps && (gaps.missing.length > 0 || gaps.weakAreas.length > 0 || gaps.nextSteps.length > 0) && (
+          <div className="rounded-lg border border-stone-200 bg-white p-5">
+            <h2 className="font-semibold">Gap analysis</h2>
+            {gaps.missing.length > 0 && (
+              <div className="mt-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                  Missing qualifications
+                </h3>
+                <ul className="mt-1.5 space-y-1.5 text-sm">
+                  {gaps.missing.map((m) => (
+                    <li key={m.skill} className="flex flex-wrap items-baseline gap-2">
+                      <span className="font-medium text-stone-800">{m.skill}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          m.impact === "high"
+                            ? "bg-red-50 text-red-700"
+                            : m.impact === "medium"
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-stone-100 text-stone-500"
+                        }`}
+                      >
+                        {m.impact} impact
+                      </span>
+                      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] text-stone-500">
+                        {m.effort} effort
+                      </span>
+                      <span className="text-xs text-stone-400">{m.rationale}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {gaps.weakAreas.length > 0 && (
+              <div className="mt-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                  Weak areas
+                </h3>
+                <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-stone-500">
+                  {gaps.weakAreas.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {gaps.resumeCoverage.uncoveredStrongAchievements.length > 0 && (
+              <p className="mt-3 text-sm text-stone-600">
+                <span className="font-medium">Resume coverage:</span>{" "}
+                {gaps.resumeCoverage.uncoveredStrongAchievements.length} job-relevant
+                achievement(s) aren&apos;t on the current resume version.
+              </p>
+            )}
+            <div className="mt-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                Next steps
+              </h3>
+              <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-sm text-stone-700">
+                {gaps.nextSteps.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </div>
+            <AiNarrative
+              url={`/api/jobs/${job.id}/gaps`}
+              field="aiNarrative"
+              aiEnabled={config.ai.enabled}
+            />
+          </div>
+        )}
+
+        <InterviewPrepPanel jobId={job.id} aiEnabled={config.ai.enabled} />
 
         {jobSuggestions.length > 0 && (
           <SuggestionsPanel suggestions={jobSuggestions} experiences={experiencesForPanel} />
