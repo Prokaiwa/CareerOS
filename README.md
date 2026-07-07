@@ -22,6 +22,28 @@ CareerOS centers on a **canonical, structured record of your career**—your "Ca
 
 Instead of hand-editing multiple Word documents, you **edit the Brain once**. Resumes are **generated FROM the Brain** as immutable, tailored snapshots. Apply for a job? Generate a resume tailored to that job description. Change your resume in one place; the Brain stays canonical. Future features (AI job fit scoring, an AI coach grounded in your history) all read and learn from this same Brain.
 
+## Run it online — no install, works on a locked-down computer
+
+Can't install Node.js (e.g. a work computer)? Run the whole thing in your
+browser with **GitHub Codespaces** — nothing downloads to your machine.
+
+1. Sign in at **github.com** (a free account is fine).
+2. Go to this repo, click the green **Code** button → **Codespaces** tab →
+   **Create codespace on main**. Wait ~1 minute while it sets itself up.
+3. When the editor finishes loading, click into the **terminal** at the
+   bottom and type:
+   ```
+   npm run dev
+   ```
+4. After it prints **Ready**, a browser tab opens with CareerOS running
+   (or click the popup that says "Open in Browser" for port 3000).
+
+That's it. To try sample data first, run `npm run seed` before step 3.
+
+> **Privacy note:** in this mode your data lives inside the GitHub cloud
+> container while you use it, not on your own machine — a reasonable trade
+> for a work computer, but different from the fully-local install below.
+
 ## Install & Run (5 minutes, no experience needed)
 
 **You need:** [Node.js](https://nodejs.org) version 20 or newer (download the
