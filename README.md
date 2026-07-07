@@ -1,6 +1,6 @@
 # CareerOS
 
-**Local-first career management for engineers.** Your complete career record—experiences, achievements, skills, education, projects, certifications, goals—lives in a single encrypted SQLite file on your machine. Zero infrastructure, zero recurring costs, zero data ever leaves unless you explicitly send it to an AI provider. Generate tailored resumes, track job applications with pipeline analytics, manage contacts, and export your career brain at any time. Built on boring, durable technology: Next.js, TypeScript, SQLite, Drizzle ORM.
+**Local-first career management for engineers.** Your complete career record—experiences, achievements, skills, education, projects, certifications, goals—lives in a single SQLite file on your machine. Zero infrastructure, zero recurring costs, zero data ever leaves unless you explicitly send it to an AI provider. Generate tailored resumes, track job applications with pipeline analytics, manage contacts, and export your career brain at any time. Built on boring, durable technology: Next.js, TypeScript, SQLite, Drizzle ORM.
 
 ## Philosophy
 
@@ -22,33 +22,61 @@ CareerOS centers on a **canonical, structured record of your career**—your "Ca
 
 Instead of hand-editing multiple Word documents, you **edit the Brain once**. Resumes are **generated FROM the Brain** as immutable, tailored snapshots. Apply for a job? Generate a resume tailored to that job description. Change your resume in one place; the Brain stays canonical. Future features (AI job fit scoring, an AI coach grounded in your history) all read and learn from this same Brain.
 
-## Quickstart
+## Install & Run (5 minutes, no experience needed)
 
-1. **Clone and install:**
-   ```bash
-   npm install
-   ```
+**You need:** [Node.js](https://nodejs.org) version 20 or newer (download the
+"LTS" installer for your system and click through it). That's the only thing
+to install — no database, no accounts, no signup.
 
-2. **Create `.env` from the example:**
-   ```bash
-   cp .env.example .env
-   ```
-   Leave everything blank for now—CareerOS works fully offline.
+**1. Get the code** (either download the ZIP from GitHub and unzip it, or):
+```bash
+git clone https://github.com/Prokaiwa/CareerOS.git
+cd CareerOS
+```
 
-3. **Start the app:**
-   ```bash
-   npm run dev
-   ```
-   The database auto-creates and runs migrations on first run. Open http://localhost:3000.
+**2. Install and start:**
+```bash
+npm install
+npm run dev
+```
 
-4. **Seed demo data (optional):**
-   ```bash
-   npm run seed
-   ```
-   Inserts a sample career brain, job pipeline, and contacts to explore the UI.
+**3. Open [http://localhost:3000](http://localhost:3000)** in your browser.
+That's it — the database creates itself on first run. No configuration file
+is required (create one later only if you want AI features).
 
-5. **Start editing:**
-   Navigate to **Career Brain** to add your experiences, achievements, skills, and education. Then use **Job Tracker** to save jobs, apply, and track interviews.
+**4. First steps in the app:**
+1. Open **Career Brain** and add your work experience, achievements, skills,
+   and education — this is the heart of CareerOS; everything else is built
+   from it.
+2. Open **Jobs** and save a job you're interested in (paste the description).
+3. On the job's page you'll immediately see your **fit score**, **gap
+   analysis**, and **"should you apply?"** advice — all computed on your
+   machine.
+4. Click **Generate Resume** / **Generate Cover Letter** — both are built
+   from your Career Brain, tailored to that job.
+
+Want to try it with sample data first? Run `npm run seed` and explore.
+
+**Optional — the browser extension** (job scores right on LinkedIn/Indeed/
+Glassdoor/Workday): run `npm run build:ext`, open `chrome://extensions` in
+Chrome, turn on "Developer mode", click "Load unpacked", pick the
+`extension/dist` folder, then copy the token from CareerOS **Settings** into
+the extension popup.
+
+**Optional — AI features** (coach, better phrasing, narratives): copy
+`.env.example` to `.env`, set `AI_PROVIDER` and its key — or run a fully
+local model with [Ollama](https://ollama.com) (`AI_PROVIDER=ollama`, no key,
+nothing leaves your machine) — then restart the app.
+
+**Troubleshooting**
+- *"command not found: npm"* → install Node.js from nodejs.org, then reopen
+  your terminal.
+- *Port 3000 already in use* → `npm run dev -- -p 3001` and open
+  localhost:3001.
+- *Build fails with an NODE_ENV warning* → make sure nothing in your shell
+  sets `NODE_ENV`; CareerOS manages it automatically.
+- *Where is my data?* → `data/careeros.db` and `storage/` in this folder.
+  Copy those two anywhere for a full backup, or run `npm run backup`.
 
 ## Features
 

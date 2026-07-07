@@ -1,5 +1,10 @@
 # CareerOS Architecture
 
+> **See also [MASTER_ARCHITECTURE.md](./MASTER_ARCHITECTURE.md)** — the
+> definitive full-system map (all engines incl. application, company,
+> analytics, calendar, notifications, plugins; boundaries; public APIs).
+> This document remains the narrative introduction to the core.
+
 Related: [ENGINEERING_PRINCIPLES.md](./ENGINEERING_PRINCIPLES.md) ·
 [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [DECISION_LOG.md](./DECISION_LOG.md)
 

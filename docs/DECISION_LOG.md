@@ -260,3 +260,74 @@ Future AI features must consume `buildContext`/`renderContextForPrompt` and
 add generic helpers to context.ts rather than querying ad hoc. The coach
 directs users to the Career Brain page for new facts — the suggestions flow
 (ADR-003) remains the only programmatic Brain write path.
+
+---
+
+## ADR-013 · Adapter interfaces for platforms; compiled-in plugins only
+
+**Decision.** Platform integrations (calendars, notification delivery,
+autofill execution, messaging, job-site parsing) are defined as capability
+interfaces (`lib/plugins/types.ts`, `CalendarProvider`,
+`NotificationChannel`, `AutofillProvider`) with engine-side data flowing in
+and platform calls flowing out. Plugins are compiled into the app or
+extension and registered at startup — no dynamic/remote plugin loading.
+
+**Context.** Final architecture session: desktop, mobile, and third-party
+integrations must be possible for years without touching engine code.
+
+**Rationale.** Interfaces let a Tauri shell, a mobile app, or a Greenhouse
+autofill module slot in without redesign, while the compiled-in constraint
+preserves the auditable privacy story (a grep can still enumerate every
+network caller). Assistive-only rules (fill, never submit; draft, never
+send) are part of the contract, not a convention.
+
+**Consequences.** New integrations implement an interface and register; the
+engine layer never grows platform branches. A future dynamic loader would
+need its own ADR and a sandboxing story first.
+
+---
+
+## ADR-014 · Local AI runtimes are first-class providers
+
+**Decision.** Ollama and LM Studio are supported providers via their
+OpenAI-compatible endpoints (`lib/ai/openaiCompatible.ts`); selecting them
+enables AI with no API key. OpenRouter is supported for cloud model breadth.
+
+**Context.** Until now every AI feature required a cloud key — the one
+place CareerOS could not be fully local.
+
+**Rationale.** Local models complete the local-first story: coaching, gap
+narratives, and letter drafting with literally nothing leaving the machine.
+The OpenAI-compatible shim makes future runtimes ~10-line adapters.
+
+**Consequences.** `config.ai.enabled` is now "key present OR local provider
+selected". Audit logging still applies (the receipt shows the local model).
+Quality varies with the local model — features already tolerate weak output
+by design (deterministic fallbacks).
+
+---
+
+## ADR-015 · Shared primitives: tasks, company facts, application engine
+
+**Decision.** (a) One `tasks` table is the single "something due at a time"
+primitive consumed by Calendar, Notifications, and checklists. (b) One
+`company_facts` typed knowledge store holds per-company salary/benefits/
+culture/growth/layoffs/news/ATS/recruiter facts. (c) The act of applying is
+an engine (`lib/application`): field mapping from the Brain, question
+memory, duplicate detection, artifact selection, validation, checklist,
+session assembly, submission recording — consumed by the extension and any
+future shell, never reimplemented in them.
+
+**Context.** Final architecture session gap analysis: calendar,
+notifications, and follow-ups were about to invent three due-date models;
+company knowledge had only a notes blob; duplicate detection lived in a
+route.
+
+**Rationale.** Primitives prevent parallel half-implementations — the most
+common form of long-term rot. The application engine keeps the most
+automation-prone surface (autofill) on the right side of the engine
+boundary and of product values (assistive filling; a human always submits).
+
+**Consequences.** New time-bound features create tasks, not new date
+columns. New company knowledge kinds extend `COMPANY_FACT_KINDS`. Autofill
+consumers are pure adapters over `ApplicationSession`.
