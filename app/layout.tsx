@@ -12,6 +12,7 @@ const nav = [
   { href: "/brain", label: "Career Brain" },
   { href: "/jobs", label: "Jobs" },
   { href: "/board", label: "Board" },
+  { href: "/analytics", label: "Analytics" },
   { href: "/resumes", label: "Resumes" },
   { href: "/coach", label: "Coach" },
   { href: "/contacts", label: "Contacts" },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
+import { findOrCreateCompanyByName } from "@/lib/companies";
 import { isValidExtensionAuth } from "@/lib/settings";
 import { unauthorized, parseBody } from "@/lib/api";
 import { withCors, corsPreflight } from "../cors";
@@ -23,18 +24,8 @@ export async function POST(req: Request) {
   if ("error" in parsed) return withCors(parsed.error);
   const { data } = parsed;
 
-  let companyId: number | null = null;
   const name = data.companyName?.trim();
-  if (name) {
-    const existing = db
-      .select()
-      .from(tables.companies)
-      .where(sql`lower(${tables.companies.name}) = lower(${name})`)
-      .get();
-    companyId = existing
-      ? existing.id
-      : db.insert(tables.companies).values({ name }).returning().get().id;
-  }
+  const companyId: number | null = name ? findOrCreateCompanyByName(name) : null;
 
   const job = db
     .insert(tables.jobs)

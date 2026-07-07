@@ -383,6 +383,74 @@ export const brainSuggestions = sqliteTable("brain_suggestions", {
 });
 
 /**
+ * Tasks: the shared "something due at a time" primitive. The Calendar and
+ * Notification engines, follow-ups, and application checklists all read
+ * from this one table instead of inventing their own.
+ */
+export const TASK_KINDS = ["task", "follow_up", "deadline", "prep"] as const;
+export type TaskKind = (typeof TASK_KINDS)[number];
+export const TASK_STATUSES = ["open", "done", "dismissed"] as const;
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+
+export const tasks = sqliteTable("tasks", {
+  id: id(),
+  title: text("title").notNull(),
+  notes: text("notes").notNull().default(""),
+  kind: text("kind").$type<TaskKind>().notNull().default("task"),
+  dueDate: text("due_date"), // ISO YYYY-MM-DD; null = undated
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").references(() => contacts.id, {
+    onDelete: "cascade",
+  }),
+  status: text("status").$type<TaskStatus>().notNull().default("open"),
+  createdAt: createdAt(),
+  completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+});
+
+/**
+ * Company facts: a typed, extensible knowledge store per company — salary
+ * data points, benefits, culture notes, growth/layoffs/news, ATS quirks,
+ * recruiter history. Grounded in what the user records; the Company
+ * Intelligence engine aggregates these into the dossier.
+ */
+export const COMPANY_FACT_KINDS = [
+  "salary",
+  "benefits",
+  "culture",
+  "growth",
+  "layoffs",
+  "news",
+  "ats",
+  "recruiter",
+  "note",
+] as const;
+export type CompanyFactKind = (typeof COMPANY_FACT_KINDS)[number];
+
+export const companyFacts = sqliteTable("company_facts", {
+  id: id(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  kind: text("kind").$type<CompanyFactKind>().notNull().default("note"),
+  content: text("content").notNull(),
+  /** Where this came from (a URL, "recruiter call", ...). User-entered. */
+  source: text("source").notNull().default(""),
+  createdAt: createdAt(),
+});
+
+/**
+ * Notification dismissals. Notifications themselves are computed on demand
+ * by the Notification Engine (never stored); dismissing one records its
+ * stable key here so it stays gone.
+ */
+export const notificationDismissals = sqliteTable("notification_dismissals", {
+  key: text("key").primaryKey(),
+  dismissedAt: integer("dismissed_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+/**
  * AI Coach conversations. History stays local — these tables are part of the
  * user's data like everything else (included in export/backup).
  */

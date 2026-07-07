@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
+import { findOrCreateCompanyByName } from "@/lib/companies";
 import { JOB_STATUSES } from "@/lib/db/schema";
 import { ok, badRequest, parseBody } from "@/lib/api";
 
@@ -67,22 +68,7 @@ export async function POST(req: Request) {
   let companyId = data.companyId ?? null;
 
   if (!companyId && data.companyName) {
-    const name = data.companyName.trim();
-    const existing = db
-      .select()
-      .from(tables.companies)
-      .where(eq(tables.companies.name, name))
-      .get();
-    if (existing) {
-      companyId = existing.id;
-    } else {
-      const created = db
-        .insert(tables.companies)
-        .values({ name })
-        .returning()
-        .get();
-      companyId = created.id;
-    }
+    companyId = findOrCreateCompanyByName(data.companyName);
   }
 
   const job = db

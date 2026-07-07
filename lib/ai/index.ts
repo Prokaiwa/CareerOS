@@ -3,6 +3,9 @@ import { db, tables } from "@/lib/db";
 import { callAnthropic } from "./anthropic";
 import { callOpenAI } from "./openai";
 import { callGoogle } from "./google";
+import { callOpenRouter } from "./openrouter";
+import { callOllama } from "./ollama";
+import { callLmStudio } from "./lmstudio";
 
 export type AiCompleteOptions = {
   system?: string;
@@ -27,12 +30,15 @@ export async function aiComplete(opts: AiCompleteOptions): Promise<string> {
   }
 
   const provider = config.ai.provider;
-  const call =
-    provider === "anthropic"
-      ? callAnthropic
-      : provider === "openai"
-        ? callOpenAI
-        : callGoogle;
+  const calls = {
+    anthropic: callAnthropic,
+    openai: callOpenAI,
+    google: callGoogle,
+    openrouter: callOpenRouter,
+    ollama: callOllama,
+    lmstudio: callLmStudio,
+  } as const;
+  const call = calls[provider];
 
   const { text, model } = await call({
     system: opts.system,

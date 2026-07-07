@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { desc, eq, like, sql } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
+import { findOrCreateCompanyByName } from "@/lib/companies";
 import { ok, parseBody } from "@/lib/api";
 
 export async function GET(req: Request) {
@@ -40,19 +41,6 @@ const createSchema = z.object({
   linkedinUrl: z.string().optional().default(""),
   notes: z.string().optional().default(""),
 });
-
-/** Case-insensitive exact-name company lookup, creating one if none exists. */
-function findOrCreateCompanyByName(rawName: string): number {
-  const name = rawName.trim();
-  const existing = db
-    .select()
-    .from(tables.companies)
-    .where(sql`lower(${tables.companies.name}) = lower(${name})`)
-    .get();
-  if (existing) return existing.id;
-  const created = db.insert(tables.companies).values({ name }).returning().get();
-  return created.id;
-}
 
 export async function POST(req: Request) {
   const parsed = await parseBody(req, createSchema);

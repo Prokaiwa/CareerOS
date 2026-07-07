@@ -11,10 +11,18 @@ const envSchema = z.object({
   APP_NAME: z.string().default("CareerOS"),
   APP_URL: z.string().default("http://localhost:3000"),
   DATABASE_URL: z.string().default("file:./data/careeros.db"),
-  AI_PROVIDER: z.enum(["anthropic", "openai", "google"]).default("anthropic"),
+  AI_PROVIDER: z
+    .enum(["anthropic", "openai", "google", "openrouter", "ollama", "lmstudio"])
+    .default("anthropic"),
   ANTHROPIC_API_KEY: z.string().default(""),
   OPENAI_API_KEY: z.string().default(""),
   GOOGLE_API_KEY: z.string().default(""),
+  OPENROUTER_API_KEY: z.string().default(""),
+  // Local model runtimes -- no keys, just where they listen.
+  OLLAMA_URL: z.string().default("http://localhost:11434"),
+  LMSTUDIO_URL: z.string().default("http://localhost:1234"),
+  // Optional model override for the selected provider.
+  AI_MODEL: z.string().default(""),
   STORAGE_PATH: z.string().default("./storage"),
   LOG_LEVEL: z.string().default("INFO"),
 });
@@ -25,9 +33,18 @@ const aiKeys = {
   anthropic: env.ANTHROPIC_API_KEY,
   openai: env.OPENAI_API_KEY,
   google: env.GOOGLE_API_KEY,
+  openrouter: env.OPENROUTER_API_KEY,
 } as const;
 
-export type AiProvider = keyof typeof aiKeys;
+export type AiProvider = keyof typeof aiKeys | "ollama" | "lmstudio";
+
+/** Local runtimes need no API key -- selecting them enables AI by itself. */
+const LOCAL_AI_PROVIDERS: ReadonlyArray<AiProvider> = ["ollama", "lmstudio"];
+
+function aiEnabled(provider: AiProvider): boolean {
+  if (LOCAL_AI_PROVIDERS.includes(provider)) return true;
+  return (aiKeys[provider as keyof typeof aiKeys] ?? "").length > 0;
+}
 
 /**
  * The single place CareerOS decides where it lives on disk. Everything that
@@ -56,7 +73,15 @@ export const config = {
   ai: {
     provider: env.AI_PROVIDER as AiProvider,
     keys: aiKeys,
-    /** True only when the selected provider has a key. Gates every AI feature. */
-    enabled: aiKeys[env.AI_PROVIDER as AiProvider].length > 0,
+    /** Optional model override (all providers). */
+    model: env.AI_MODEL,
+    ollamaUrl: env.OLLAMA_URL.replace(/\/+$/, ""),
+    lmstudioUrl: env.LMSTUDIO_URL.replace(/\/+$/, ""),
+    /**
+     * Gates every AI feature. Cloud providers need a key; local providers
+     * (Ollama, LM Studio) are enabled by selection alone -- nothing leaves
+     * the machine either way until the user triggers an AI action.
+     */
+    enabled: aiEnabled(env.AI_PROVIDER as AiProvider),
   },
 } as const;
