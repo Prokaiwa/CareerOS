@@ -1,4 +1,5 @@
 import { ok } from "@/lib/api";
+import { isAiEnabled } from "@/lib/ai";
 import { config } from "@/lib/config";
 import { generateWeeklyReview, summarizeWeek } from "@/lib/intelligence";
 
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   let review = generateWeeklyReview();
-  if (new URL(req.url).searchParams.get("ai") === "1" && config.ai.enabled) {
+  if (new URL(req.url).searchParams.get("ai") === "1" && isAiEnabled()) {
     review = await summarizeWeek(review);
   }
   return ok(review);

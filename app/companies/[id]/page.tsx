@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isAiEnabled } from "@/lib/ai";
 import { notFound } from "next/navigation";
 import { buildCompanyDossier } from "@/lib/company";
 import { config } from "@/lib/config";
@@ -49,7 +50,7 @@ export default async function CompanyPage({
         <AiNarrative
           url={`/api/companies/${company.id}/dossier`}
           field="aiSummary"
-          aiEnabled={config.ai.enabled}
+          aiEnabled={isAiEnabled()}
         />
       </div>
 

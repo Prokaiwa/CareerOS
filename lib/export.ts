@@ -12,6 +12,47 @@ import { config } from "@/lib/config";
  */
 export type ExportResult = { jsonPath: string; mdPath: string };
 
+/**
+ * The complete data snapshot as a plain object — the single source of truth
+ * for "everything the user owns". Used by the CLI export, the in-app
+ * download button (GET /api/data/download), and backups.
+ *
+ * When you add a table to the schema, add it here.
+ */
+export function buildExportObject() {
+  return {
+    exportedAt: new Date().toISOString(),
+    tables: {
+      profile: db.select().from(tables.profile).all(),
+      experiences: db.select().from(tables.experiences).all(),
+      projects: db.select().from(tables.projects).all(),
+      achievements: db.select().from(tables.achievements).all(),
+      education: db.select().from(tables.education).all(),
+      skills: db.select().from(tables.skills).all(),
+      achievementSkills: db.select().from(tables.achievementSkills).all(),
+      certifications: db.select().from(tables.certifications).all(),
+      careerGoals: db.select().from(tables.careerGoals).all(),
+      companies: db.select().from(tables.companies).all(),
+      jobs: db.select().from(tables.jobs).all(),
+      jobStageEvents: db.select().from(tables.jobStageEvents).all(),
+      contacts: db.select().from(tables.contacts).all(),
+      interactions: db.select().from(tables.interactions).all(),
+      interviews: db.select().from(tables.interviews).all(),
+      applicationAnswers: db.select().from(tables.applicationAnswers).all(),
+      resumeVersions: db.select().from(tables.resumeVersions).all(),
+      coverLetterVersions: db.select().from(tables.coverLetterVersions).all(),
+      brainSuggestions: db.select().from(tables.brainSuggestions).all(),
+      tasks: db.select().from(tables.tasks).all(),
+      companyFacts: db.select().from(tables.companyFacts).all(),
+      notificationDismissals: db.select().from(tables.notificationDismissals).all(),
+      coachConversations: db.select().from(tables.coachConversations).all(),
+      coachMessages: db.select().from(tables.coachMessages).all(),
+      aiGenerations: db.select().from(tables.aiGenerations).all(),
+      settings: db.select().from(tables.settings).all(),
+    },
+  };
+}
+
 export function exportAll(): ExportResult {
   const dateStr = new Date().toISOString().split("T")[0];
   const exportsDir = path.join(config.paths.storage, "exports");
@@ -44,37 +85,7 @@ export function exportAll(): ExportResult {
   const aiGenerations = db.select().from(tables.aiGenerations).all();
   const settings = db.select().from(tables.settings).all();
 
-  const exportData = {
-    exportedAt: new Date().toISOString(),
-    tables: {
-      profile,
-      experiences,
-      projects,
-      achievements,
-      education,
-      skills,
-      achievementSkills,
-      certifications,
-      careerGoals,
-      companies,
-      jobs,
-      jobStageEvents,
-      contacts,
-      interactions,
-      interviews,
-      applicationAnswers,
-      resumeVersions,
-      coverLetterVersions,
-      brainSuggestions,
-      tasks,
-      companyFacts,
-      notificationDismissals,
-      coachConversations,
-      coachMessages,
-      aiGenerations,
-      settings,
-    },
-  };
+  const exportData = buildExportObject();
 
   const jsonPath = path.join(exportsDir, `careeros-export-${dateStr}.json`);
   fs.writeFileSync(jsonPath, JSON.stringify(exportData, null, 2));

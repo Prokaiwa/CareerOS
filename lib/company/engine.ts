@@ -1,4 +1,5 @@
 import { desc, eq } from "drizzle-orm";
+import { isAiEnabled } from "@/lib/ai";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
 import { aiComplete } from "@/lib/ai";
@@ -142,7 +143,7 @@ export function buildCompanyDossier(companyId: number): CompanyDossier | null {
 
 /** Optional AI paragraph grounded only in the dossier. Unchanged on failure. */
 export async function summarizeCompany(dossier: CompanyDossier): Promise<CompanyDossier> {
-  if (!config.ai.enabled) return dossier;
+  if (!isAiEnabled()) return dossier;
   try {
     const { system, prompt } = buildCompanySummaryPrompt(dossier);
     const text = await aiComplete({ system, prompt, purpose: "company_summary", maxTokens: 500 });

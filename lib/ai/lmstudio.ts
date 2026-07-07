@@ -1,19 +1,14 @@
-import { config } from "@/lib/config";
+import type { AdapterOptions, AdapterResult } from "./adapter";
 import { callOpenAiCompatible } from "./openaiCompatible";
 
-/**
- * LM Studio: fully local models via its OpenAI-compatible server. LM Studio
- * serves whichever model is loaded; the model string is advisory.
- */
-export async function callLmStudio(opts: {
-  system?: string;
-  prompt: string;
-  maxTokens?: number;
-}) {
+/** LM Studio: fully local models via its OpenAI-compatible server. */
+export async function callLmStudio(opts: AdapterOptions): Promise<AdapterResult> {
   return callOpenAiCompatible({
-    baseUrl: `${config.ai.lmstudioUrl}/v1`,
-    model: config.ai.model || "local-model",
+    baseUrl: `${opts.baseUrl ?? "http://localhost:1234"}/v1`,
+    model: opts.model || "local-model",
     providerLabel: "LM Studio",
-    ...opts,
+    system: opts.system,
+    prompt: opts.prompt,
+    maxTokens: opts.maxTokens,
   });
 }

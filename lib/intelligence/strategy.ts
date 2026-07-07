@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { isAiEnabled } from "@/lib/ai";
 import { aiComplete } from "@/lib/ai";
 import { SKILL_LEXICON } from "@/lib/scoring";
 import { tokenize, overlapScore } from "@/lib/text";
@@ -201,7 +202,7 @@ export function analyzeGaps(jobId: number): GapReport | null {
 }
 
 export async function explainGaps(report: GapReport, jobId: number): Promise<GapReport> {
-  if (!config.ai.enabled) return report;
+  if (!isAiEnabled()) return report;
   try {
     const ctx = buildContext({ include: ["brain", "goals", "job"], jobId });
     const { system, prompt } = buildGapNarrativePrompt(report, renderContextForPrompt(ctx));
@@ -327,7 +328,7 @@ export async function explainAdvice(
   advice: ApplicationAdvice,
   jobId: number,
 ): Promise<ApplicationAdvice> {
-  if (!config.ai.enabled) return advice;
+  if (!isAiEnabled()) return advice;
   try {
     const ctx = buildContext({ include: ["goals", "job", "pipeline"], jobId });
     const { system, prompt } = buildAdviceNarrativePrompt(
@@ -484,7 +485,7 @@ export function generateWeeklyReview(): WeeklyReview {
 }
 
 export async function summarizeWeek(review: WeeklyReview): Promise<WeeklyReview> {
-  if (!config.ai.enabled) return review;
+  if (!isAiEnabled()) return review;
   try {
     const { system, prompt } = buildWeeklySummaryPrompt(review);
     const text = await aiComplete({

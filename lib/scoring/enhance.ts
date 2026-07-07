@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { isAiEnabled } from "@/lib/ai";
 import { aiComplete } from "@/lib/ai";
 import type { ScoreReasoning, ScoreReport, ScoringJobInput } from "./types";
 
@@ -24,7 +25,7 @@ export async function enhanceReasoning(
   job: ScoringJobInput,
   jobId: number | null,
 ): Promise<ScoreReport> {
-  if (!config.ai.enabled) return report;
+  if (!isAiEnabled()) return report;
 
   const prompt = [
     "You are improving the explanations of a deterministic job-fit report.",

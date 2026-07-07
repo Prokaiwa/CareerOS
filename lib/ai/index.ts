@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
 import { db, tables } from "@/lib/db";
+import { getAiRuntime, isAiEnabled } from "./runtime";
 import { callAnthropic } from "./anthropic";
 import { callOpenAI } from "./openai";
 import { callGoogle } from "./google";
@@ -7,49 +7,54 @@ import { callOpenRouter } from "./openrouter";
 import { callOllama } from "./ollama";
 import { callLmStudio } from "./lmstudio";
 
+export { getAiRuntime, isAiEnabled } from "./runtime";
+export type { AiRuntime } from "./runtime";
+
 export type AiCompleteOptions = {
   system?: string;
   prompt: string;
   maxTokens?: number;
-  /** Short label for the audit trail, e.g. "resume_rank", "resume_phrase". */
+  /** Short label for the audit trail, e.g. "resume_rank", "coach". */
   purpose: string;
   jobId?: number | null;
   resumeVersionId?: number | null;
 };
 
+const CALLS = {
+  anthropic: callAnthropic,
+  openai: callOpenAI,
+  google: callGoogle,
+  openrouter: callOpenRouter,
+  ollama: callOllama,
+  lmstudio: callLmStudio,
+} as const;
+
 /**
- * Dispatches a single completion to the configured AI provider and always
- * records an audit row in ai_generations — purpose, provider, model, a
- * prompt summary, and input/output sizes. Throws if AI is disabled.
+ * Dispatches one completion to the active provider (resolved live from
+ * settings/env by getAiRuntime) and always records an ai_generations audit
+ * row. Throws if AI is not configured.
  */
 export async function aiComplete(opts: AiCompleteOptions): Promise<string> {
-  if (!config.ai.enabled) {
+  const rt = getAiRuntime();
+  if (!rt.enabled) {
     throw new Error(
-      "AI is not configured — set an API key in .env for the selected provider",
+      "AI is not configured — choose a provider and add a key on the Settings page (or set one in .env).",
     );
   }
 
-  const provider = config.ai.provider;
-  const calls = {
-    anthropic: callAnthropic,
-    openai: callOpenAI,
-    google: callGoogle,
-    openrouter: callOpenRouter,
-    ollama: callOllama,
-    lmstudio: callLmStudio,
-  } as const;
-  const call = calls[provider];
-
-  const { text, model } = await call({
+  const { text, model } = await CALLS[rt.provider]({
     system: opts.system,
     prompt: opts.prompt,
     maxTokens: opts.maxTokens,
+    apiKey: rt.apiKey,
+    model: rt.model || undefined,
+    baseUrl: rt.baseUrl,
   });
 
   db.insert(tables.aiGenerations)
     .values({
       purpose: opts.purpose,
-      provider,
+      provider: rt.provider,
       model,
       jobId: opts.jobId ?? null,
       resumeVersionId: opts.resumeVersionId ?? null,
@@ -60,4 +65,28 @@ export async function aiComplete(opts: AiCompleteOptions): Promise<string> {
     .run();
 
   return text;
+}
+
+/**
+ * Lightweight connectivity check for the Settings "Test connection" button.
+ * Does NOT write an audit row (it's a diagnostic, not a real generation).
+ */
+export async function testAiConnection(): Promise<{ ok: boolean; detail: string }> {
+  const rt = getAiRuntime();
+  if (!rt.enabled) return { ok: false, detail: "No provider/key configured." };
+  try {
+    const { text, model } = await CALLS[rt.provider]({
+      prompt: "Reply with the single word: ok",
+      maxTokens: 5,
+      apiKey: rt.apiKey,
+      model: rt.model || undefined,
+      baseUrl: rt.baseUrl,
+    });
+    return {
+      ok: true,
+      detail: `Connected to ${rt.provider} (${model}). Replied: ${text.trim().slice(0, 40) || "(empty)"}`,
+    };
+  } catch (err) {
+    return { ok: false, detail: err instanceof Error ? err.message.slice(0, 300) : "Unknown error" };
+  }
 }

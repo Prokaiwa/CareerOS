@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isAiEnabled } from "@/lib/ai";
 import { notFound } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
@@ -305,7 +306,7 @@ export default async function JobDetailPage({
             <AiNarrative
               url={`/api/jobs/${job.id}/advice`}
               field="aiNarrative"
-              aiEnabled={config.ai.enabled}
+              aiEnabled={isAiEnabled()}
             />
           </div>
         )}
@@ -374,12 +375,12 @@ export default async function JobDetailPage({
             <AiNarrative
               url={`/api/jobs/${job.id}/gaps`}
               field="aiNarrative"
-              aiEnabled={config.ai.enabled}
+              aiEnabled={isAiEnabled()}
             />
           </div>
         )}
 
-        <InterviewPrepPanel jobId={job.id} aiEnabled={config.ai.enabled} />
+        <InterviewPrepPanel jobId={job.id} aiEnabled={isAiEnabled()} />
 
         {jobSuggestions.length > 0 && (
           <SuggestionsPanel suggestions={jobSuggestions} experiences={experiencesForPanel} />

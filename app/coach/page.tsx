@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { isAiEnabled } from "@/lib/ai";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
 import { listConversations } from "@/lib/intelligence";
@@ -7,7 +8,7 @@ import { CoachChat } from "@/components/coach/CoachChat";
 export const dynamic = "force-dynamic";
 
 export default function CoachPage() {
-  const aiEnabled = config.ai.enabled;
+  const aiEnabled = isAiEnabled();
 
   if (!aiEnabled) {
     return (

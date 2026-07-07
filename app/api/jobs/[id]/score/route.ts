@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { isAiEnabled } from "@/lib/ai";
 import { db, tables } from "@/lib/db";
 import { ok, badRequest, notFound, idFromParams } from "@/lib/api";
 import { config } from "@/lib/config";
@@ -35,7 +36,7 @@ export async function GET(
   let report = scoreJob(loadBrain(), jobInput);
 
   const wantAi = new URL(req.url).searchParams.get("ai") === "1";
-  if (wantAi && config.ai.enabled) {
+  if (wantAi && isAiEnabled()) {
     report = await enhanceReasoning(report, jobInput, id);
   }
 

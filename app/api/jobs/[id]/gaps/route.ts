@@ -1,4 +1,5 @@
 import { ok, badRequest, notFound, idFromParams } from "@/lib/api";
+import { isAiEnabled } from "@/lib/ai";
 import { config } from "@/lib/config";
 import { analyzeGaps, explainGaps } from "@/lib/intelligence";
 
@@ -14,7 +15,7 @@ export async function GET(
   let report = analyzeGaps(id);
   if (!report) return notFound("Job not found");
 
-  if (new URL(req.url).searchParams.get("ai") === "1" && config.ai.enabled) {
+  if (new URL(req.url).searchParams.get("ai") === "1" && isAiEnabled()) {
     report = await explainGaps(report, id);
   }
   return ok(report);

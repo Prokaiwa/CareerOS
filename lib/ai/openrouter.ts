@@ -1,19 +1,17 @@
-import { config } from "@/lib/config";
+import type { AdapterOptions, AdapterResult } from "./adapter";
 import { callOpenAiCompatible } from "./openaiCompatible";
 
 const DEFAULT_MODEL = "anthropic/claude-sonnet-4.5";
 
 /** OpenRouter: one key, hundreds of models. */
-export async function callOpenRouter(opts: {
-  system?: string;
-  prompt: string;
-  maxTokens?: number;
-}) {
+export async function callOpenRouter(opts: AdapterOptions): Promise<AdapterResult> {
   return callOpenAiCompatible({
     baseUrl: "https://openrouter.ai/api/v1",
-    apiKey: config.ai.keys.openrouter,
-    model: config.ai.model || DEFAULT_MODEL,
+    apiKey: opts.apiKey,
+    model: opts.model || DEFAULT_MODEL,
     providerLabel: "OpenRouter",
-    ...opts,
+    system: opts.system,
+    prompt: opts.prompt,
+    maxTokens: opts.maxTokens,
   });
 }

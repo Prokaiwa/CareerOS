@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { isAiEnabled } from "@/lib/ai";
 import { aiComplete } from "@/lib/ai";
 import type { ResumeContent } from "@/lib/db/schema";
 
@@ -14,7 +15,7 @@ export async function refineResumeContent(
   jobDescription: string,
   jobId: number | null,
 ): Promise<ResumeContent> {
-  if (!config.ai.enabled) return content;
+  if (!isAiEnabled()) return content;
 
   const bullets: Array<{ id: number; text: string }> = [];
   for (const exp of content.experiences) {

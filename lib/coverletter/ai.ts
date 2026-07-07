@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { isAiEnabled } from "@/lib/ai";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
 import { aiComplete } from "@/lib/ai";
@@ -19,7 +20,7 @@ export async function draftWithAi(
   offlineBody: string,
   facts: CoverLetterFacts,
 ): Promise<string> {
-  if (!config.ai.enabled) return offlineBody;
+  if (!isAiEnabled()) return offlineBody;
 
   const job = db
     .select({ title: tables.jobs.title, description: tables.jobs.description })

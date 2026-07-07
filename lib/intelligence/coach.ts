@@ -1,4 +1,5 @@
 import { asc, desc, eq } from "drizzle-orm";
+import { isAiEnabled } from "@/lib/ai";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
 import { aiComplete } from "@/lib/ai";
@@ -79,7 +80,7 @@ export async function coachRespond(opts: {
   userMessage: string;
   jobId?: number | null;
 }): Promise<CoachReply> {
-  if (!config.ai.enabled) throw new AiDisabledError();
+  if (!isAiEnabled()) throw new AiDisabledError();
   const { conversationId, userMessage, jobId } = opts;
 
   const priorMessages = getMessages(conversationId);

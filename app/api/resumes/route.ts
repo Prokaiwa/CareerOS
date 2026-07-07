@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isAiEnabled } from "@/lib/ai";
 import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   if ("error" in parsed) return parsed.error;
   const { data } = parsed;
 
-  if (data.useAi && !config.ai.enabled) {
+  if (data.useAi && !isAiEnabled()) {
     return badRequest("AI is not configured — set an API key in .env");
   }
 

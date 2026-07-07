@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { isAiEnabled } from "@/lib/ai";
 import { aiComplete } from "@/lib/ai";
 import { tokenize, overlapScore } from "@/lib/text";
 import { buildContext, renderContextForPrompt } from "./context";
@@ -149,7 +150,7 @@ export async function enhanceInterviewPrep(
   prep: InterviewPrep,
   jobId: number,
 ): Promise<InterviewPrep> {
-  if (!config.ai.enabled) return prep;
+  if (!isAiEnabled()) return prep;
   try {
     const ctx = buildContext({ include: ["brain", "job"], jobId });
     const { system, prompt } = buildInterviewEnhancePrompt(prep, renderContextForPrompt(ctx));

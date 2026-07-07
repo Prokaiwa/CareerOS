@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { isAiEnabled } from "@/lib/ai";
 import { aiComplete } from "@/lib/ai";
 import { tokenize, overlapScore } from "@/lib/text";
 import { buildContext, renderContextForPrompt } from "./context";
@@ -141,7 +142,7 @@ export async function explainResume(
   resumeVersionId: number,
   jobId: number | null,
 ): Promise<ResumeAdvice> {
-  if (!config.ai.enabled) return advice;
+  if (!isAiEnabled()) return advice;
   try {
     const ctx = buildContext({
       include: jobId ? ["job", "resume"] : ["resume"],

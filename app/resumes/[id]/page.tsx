@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isAiEnabled } from "@/lib/ai";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
@@ -204,7 +205,7 @@ export default async function ResumeDetailPage({
           </section>
         )}
 
-        <ResumeAdvicePanel resumeVersionId={row.id} aiEnabled={config.ai.enabled} />
+        <ResumeAdvicePanel resumeVersionId={row.id} aiEnabled={isAiEnabled()} />
       </div>
     </div>
   );

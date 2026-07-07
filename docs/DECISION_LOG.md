@@ -331,3 +331,28 @@ boundary and of product values (assistive filling; a human always submits).
 **Consequences.** New time-bound features create tasks, not new date
 columns. New company knowledge kinds extend `COMPANY_FACT_KINDS`. Autofill
 consumers are pure adapters over `ApplicationSession`.
+
+---
+
+## ADR-016 · AI configuration is live and UI-editable (settings over .env)
+
+**Decision.** The active AI provider, key, and model are resolved at call
+time by `lib/ai/runtime.ts` from the `settings` table first, falling back to
+`.env`. The Settings page lets a non-technical user pick a provider, paste a
+key, and test it — no file editing, no restart. `config.ai.enabled` (static)
+is replaced everywhere by `isAiEnabled()` (live).
+
+**Context.** Editing `.env` was the last developer-only step blocking
+non-technical users; keys also couldn't change without a restart.
+
+**Rationale.** "Optional AI" only helps if turning it on is trivial. Reading
+config live keeps one resolution point (still the only place that decides
+"is AI on, with what credentials"), preserves the env path for developers,
+and adds no new dependency. The key is stored in the local DB (same trust
+boundary as all other local data) and never returned by any API — routes
+expose only `hasKey`.
+
+**Consequences.** New AI gates must call `isAiEnabled()`, never the old
+static flag. Provider adapters take credentials per call (from the runtime),
+so they hold no config of their own — which also made per-call model
+overrides and the "Test connection" diagnostic trivial.

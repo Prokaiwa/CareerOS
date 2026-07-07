@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isAiEnabled } from "@/lib/ai";
 import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
@@ -47,7 +48,7 @@ export default async function ResumesPage() {
       </p>
 
       <div className="mt-6">
-        <GenerateResumeForm jobs={jobs} aiEnabled={config.ai.enabled} />
+        <GenerateResumeForm jobs={jobs} aiEnabled={isAiEnabled()} />
       </div>
 
       <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">

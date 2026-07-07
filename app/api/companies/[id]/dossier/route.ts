@@ -1,4 +1,5 @@
 import { ok, badRequest, notFound, idFromParams } from "@/lib/api";
+import { isAiEnabled } from "@/lib/ai";
 import { config } from "@/lib/config";
 import { buildCompanyDossier, summarizeCompany } from "@/lib/company";
 
@@ -14,7 +15,7 @@ export async function GET(
   let dossier = buildCompanyDossier(id);
   if (!dossier) return notFound("Company not found");
 
-  if (new URL(req.url).searchParams.get("ai") === "1" && config.ai.enabled) {
+  if (new URL(req.url).searchParams.get("ai") === "1" && isAiEnabled()) {
     dossier = await summarizeCompany(dossier);
   }
   return ok(dossier);
