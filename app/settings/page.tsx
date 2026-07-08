@@ -160,6 +160,15 @@ export default function SettingsPage() {
           <BackupButton initialLastBackupAt={lastBackupAt} />
         </div>
       </section>
+
+      <section className="mt-6 flex items-center gap-4 text-sm">
+        <a href="/about" className="text-emerald-700 underline transition-colors hover:no-underline">
+          About
+        </a>
+        <a href="/health" className="text-emerald-700 underline transition-colors hover:no-underline">
+          Health &amp; diagnostics
+        </a>
+      </section>
     </div>
   );
 }
