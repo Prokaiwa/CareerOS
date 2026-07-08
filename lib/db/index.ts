@@ -15,6 +15,7 @@ function resolveDbPath(): string {
 declare global {
   // Reuse the connection across Next.js hot reloads in dev.
   var __careerosDb: ReturnType<typeof createDb> | undefined;
+  var __careerosSqlite: Database.Database | undefined;
 }
 
 function createDb() {
@@ -23,7 +24,8 @@ function createDb() {
   sqlite.pragma("foreign_keys = ON");
   const db = drizzle(sqlite, { schema });
   // Idempotent: `npm run dev` just works on a fresh clone, no separate step.
-  migrate(db, { migrationsFolder: path.join(process.cwd(), "lib/db/migrations") });
+  migrate(db, { migrationsFolder: config.paths.migrations });
+  globalThis.__careerosSqlite = sqlite;
   return db;
 }
 
@@ -31,3 +33,21 @@ export const db = globalThis.__careerosDb ?? createDb();
 globalThis.__careerosDb = db;
 
 export * as tables from "./schema";
+
+/**
+ * Runs `fn` with foreign-key enforcement temporarily off. SQLite only
+ * allows toggling this pragma outside any active transaction, so the
+ * pragma flip happens here, around (not inside) `fn`'s own transaction —
+ * used by full-database restore, which must insert rows in whatever order
+ * the export happens to list tables, not a hand-verified FK-safe order.
+ */
+export function runWithForeignKeysOff<T>(fn: () => T): T {
+  const sqlite = globalThis.__careerosSqlite;
+  if (!sqlite) throw new Error("Database not initialized");
+  sqlite.pragma("foreign_keys = OFF");
+  try {
+    return fn();
+  } finally {
+    sqlite.pragma("foreign_keys = ON");
+  }
+}

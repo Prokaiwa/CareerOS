@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { config } from "@/lib/config";
+import { setSetting } from "@/lib/settings";
 
 /**
  * Backup: copies the two folders that hold the entire application state
@@ -42,6 +43,13 @@ export function createBackup(): BackupResult {
     } else {
       skipped.push(label);
     }
+  }
+
+  if (copied.length > 0) {
+    // Recorded here (not in the CLI script or a route) so every backup
+    // path — `npm run backup` and the Settings-page button alike — updates
+    // the same timestamp the health page and backup-reminder read.
+    setSetting("last_backup_at", new Date().toISOString());
   }
 
   return { backupDir, copied, skipped };

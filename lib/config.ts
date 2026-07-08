@@ -69,6 +69,8 @@ export const config = {
     storage: path.resolve(root, env.STORAGE_PATH),
     /** Absolute path where backups are written. */
     backups: path.join(root, "backups"),
+    /** Absolute path of the Drizzle migrations folder. */
+    migrations: path.join(root, "lib/db/migrations"),
   },
   ai: {
     provider: env.AI_PROVIDER as AiProvider,

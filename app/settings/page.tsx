@@ -3,9 +3,10 @@ import { count } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
-import { getOrCreateExtensionToken } from "@/lib/settings";
+import { getOrCreateExtensionToken, getSetting } from "@/lib/settings";
 import CopyButton from "@/components/settings/CopyButton";
 import { AiSettingsForm } from "@/components/settings/AiSettingsForm";
+import { BackupButton } from "@/components/settings/BackupButton";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default function SettingsPage() {
   const dbPath = config.paths.db;
   const storagePath = config.paths.storage;
   const aiGenerationCount = countOf(tables.aiGenerations);
+  const lastBackupAt = getSetting("last_backup_at");
   const rt = getAiRuntime();
   const aiStatus = {
     provider: rt.provider,
@@ -151,11 +153,12 @@ export default function SettingsPage() {
           </span>
         </div>
         <p className="mt-3 text-sm text-stone-600">
-          Your entire career history also lives in two folders on this machine — copy them and you
-          have a full backup. From a terminal you can also run{" "}
-          <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">npm run backup</code> or{" "}
-          <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">npm run export</code>.
+          Your entire career history also lives in two folders on this machine — a full backup
+          copies both of them into a timestamped folder.
         </p>
+        <div className="mt-3">
+          <BackupButton initialLastBackupAt={lastBackupAt} />
+        </div>
       </section>
     </div>
   );
