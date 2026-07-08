@@ -356,3 +356,35 @@ expose only `hasKey`.
 static flag. Provider adapters take credentials per call (from the runtime),
 so they hold no config of their own — which also made per-call model
 overrides and the "Test connection" diagnostic trivial.
+
+## ADR-017 · Import-with-review is an approved Career Brain write path
+
+**Decision.** `lib/import/` adds a second, narrow write path into the
+Career Brain alongside the Suggestion Engine: `extractBrainFromText()` calls
+the audited AI layer to *propose* a structured extraction from pasted
+résumé/cover-letter text, but never writes anything. The `/import` page
+renders that proposal with a checkbox per item; only what the user leaves
+checked is passed to `commitImport()`, a deterministic function that writes
+verbatim what it's given (find-or-create for skills, plain inserts
+elsewhere). No text field on the extraction route is inferred, resolved, or
+altered before display — review happens before any DB write.
+
+**Context.** Manually re-typing an entire career history was the biggest
+friction point raised by real usage. The user also asked about scraping
+LinkedIn via a live login, the way some ATS integrations do. That was
+rejected: it violates LinkedIn's ToS, breaks on every markup change, and
+isn't something CareerOS should automate. Import-with-review gets the same
+outcome (fast onboarding from existing documents, including LinkedIn's own
+"Save to PDF"/data export) without live scraping or new deps.
+
+**Rationale.** The constitution's "AI never touches the Brain directly"
+rule is preserved by construction: extraction is read-only (a proposal),
+and the only function that mutates Brain tables (`commitImport`) takes a
+plain, already-user-confirmed object — it doesn't know or care that AI was
+involved in producing it. This mirrors `resolveSuggestion` in
+`lib/suggestions.ts`, which was already the precedent for "AI proposes,
+human confirms, deterministic code writes."
+
+**Consequences.** No live third-party login/scraping is ever added under
+this feature. Any future "auto-fill from X" source must go through the same
+propose → review → `commitImport` shape, not a direct write.
