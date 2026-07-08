@@ -14,8 +14,8 @@ able to understand the entire system from this document. Companion docs:
                                 │       CAREER BRAIN          │  canonical source of truth
                                 │ profile · experiences ·     │  writes: Brain editor UI,
                                 │ achievements · skills ·     │  Suggestion Engine (verbatim
-                                │ education · projects ·      │  user answers) — NOTHING else
-                                │ certifications · goals      │
+                                │ education · projects ·      │  user answers), Import Engine
+                                │ certifications · goals      │  (reviewed extraction) — else none
                                 └─────────────┬──────────────┘
                                               │ read by every engine
   ┌─────────────┬──────────────┬──────────────┼──────────────┬──────────────┬─────────────┐
@@ -44,7 +44,7 @@ CONSUMERS (no business logic; validate → call engine → render/shape)
 ┌──────────────────────────────┐  ┌──────────────────────────────────────────┐
 │ DASHBOARD (Next.js app/)     │  │ BROWSER EXTENSION (extension/, MV3)      │
 │ pages read engines directly; │  │ popup clipper · job-site sidebar ·       │
-│ client components mutate via │  │ future autofill — consumes token-gated   │
+│ client components mutate via │  │ form autofill — consumes token-gated     │
 │ app/api/* route handlers     │  │ /api/extension/* (analyze, clip,         │
 │                              │  │ application, suggestions respond)        │
 └──────────────┬───────────────┘  └──────────────────────────────────────────┘
@@ -66,7 +66,9 @@ private and may change without notice.
 | Career Match | `lib/scoring` | job-fit judgment | Brain, job text | `jobs.fitScore` (via score route only) | `loadBrain`, `scoreJob`, `enhanceReasoning`, `parseSalaryRange`, `SKILL_LEXICON`, `ScoreReport` |
 | Resume | `lib/resume` | resume derivation | Brain, job | `resume_versions` (immutable), files | `buildResumeContent`, `generateResume`, renderers |
 | Cover Letter | `lib/coverletter` | letter derivation | Brain, job | `cover_letter_versions` (immutable), files | `composeCoverLetter`, `generateCoverLetter` |
-| Suggestions | `lib/suggestions.ts` | ask-the-user lifecycle; **the only programmatic Brain write path** | pending questions | `brain_suggestions`; skills/achievements (verbatim answers) | `getPendingSuggestions`, `resolveSuggestion`, `dismissSuggestion` |
+| Suggestions | `lib/suggestions.ts` | ask-the-user lifecycle | pending questions | `brain_suggestions`; skills/achievements (verbatim answers) | `getPendingSuggestions`, `resolveSuggestion`, `dismissSuggestion` |
+| Import | `lib/import` | reviewed extraction → Brain write (ADR-017) | pasted/uploaded text (incl. PDF/DOCX via `fileText.ts`) | Brain tables (only user-confirmed items) | `extractBrainFromText`, `commitImport`, `extractTextFromFile` |
+| Onboarding | `lib/onboarding` | first-run gating, Brain completeness, full-export restore (ADR-020) | Brain state, `settings` | `settings` (onboarding flag); any table via `restoreFromExport`, guarded to an empty DB only | `isOnboardingNeeded`, `computeBrainCompleteness`, `restoreFromExport` |
 | Intelligence | `lib/intelligence` | AI-grounded reasoning; context assembly | everything via `context.ts` | `coach_*` tables only | `buildContext`, `renderContextForPrompt`, `analyzeGaps`, `adviseApplication`, `generateWeeklyReview`, `adviseResume`, `prepareInterview`, `coachRespond` |
 | Application | `lib/application` | the act of applying | Brain, jobs, versions, answers, tasks | `application_answers`, job status on submission | `startApplicationSession`, `buildFieldMap`, `findExistingJob`, `findRememberedAnswers`, `rememberAnswer`, `recordSubmission`, `validateApplication`, `buildApplicationChecklist`, `getApplicationHistory`, `SITE_PROFILES` |
 | Company Intel | `lib/company` | per-company knowledge | company + related rows, `company_facts` | `company_facts` | `buildCompanyDossier`, `summarizeCompany`, `addFact`, `deleteFact` |
@@ -85,6 +87,14 @@ suggestions → intelligence → application/company/analytics/calendar →
 notifications`. UI/routes may consume anything; engines never import UI,
 React, Next, or request objects.
 
+**Brain write paths.** Two, both requiring human confirmation before
+anything is written: `resolveSuggestion` (AI-flagged gap → user answers a
+specific question) and `commitImport` (AI-extracted document → user
+checks off which items to keep). `restoreFromExport` is a third, narrower
+exception — a full-table restore of the user's *own* prior export, guarded
+to run only against a completely empty database (no merge, no partial
+write).
+
 **AI touchpoint rule (ADR-012).** Only `lib/intelligence/context.ts`
 assembles data for AI reasoning; only `lib/ai/aiComplete` sends it. Every
 other engine's optional AI pass builds its prompt from its own deterministic
@@ -98,7 +108,9 @@ Same-origin (UI): CRUD under `/api/brain/*`, `/api/jobs/*` (+ `score`,
 (+ `dossier`, `facts`), `/api/resumes/*` (+ `advice`, `file`),
 `/api/cover-letters/*`, `/api/contacts/*`, `/api/suggestions/*`,
 `/api/coach/*`, `/api/analytics`, `/api/review/weekly`, `/api/tasks/*`,
-`/api/notifications`, `/api/calendar` (`?format=ics`).
+`/api/notifications`, `/api/calendar` (`?format=ics`), `/api/import/*`
+(`extract`, `commit`, `parse-file`), `/api/onboarding` (+ `restore`),
+`/api/data/*` (`download`, `backup`), `/api/settings/ai` (+ `test`).
 
 Cross-origin (extension; bearer token + CORS, see ADR-011): 
 `/api/extension/ping`, `/api/extension/clip`, `/api/extension/analyze`,

@@ -70,21 +70,14 @@ feature is. The full version scope lives in
 
 Vision items, not promises. Each must honor the
 [engineering principles](./ENGINEERING_PRINCIPLES.md) — Brain-grounded,
-local-first, deterministic core, AI optional.
+local-first, deterministic core, AI optional. (AI Coach, Company
+Intelligence, Analytics, Interview preparation, and application-memory
+capture from this list have since shipped — see
+[IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)'s Version Roadmap for
+what's actually in each version.)
 
-- **AI Coach** — a conversation grounded in your Brain and pipeline: gap
-  analysis against your goals, interview preparation, application strategy,
-  post-rejection retrospectives.
-- **Company Intelligence** — per-company dossiers aggregating your jobs,
-  contacts, interactions, and notes, with optional AI summarization.
-- **Analytics** — funnel conversion, response rates, time-in-stage, and
-  source effectiveness computed locally from `job_stage_events`.
-- **Interview preparation** — question banks and prep flows attached to
-  interviews, informed by the job's match report and your retro notes.
 - **Networking CRM depth** — relationship cadences, introduction paths,
   follow-up automation that drafts (never sends) from Brain facts.
-- **Application memory everywhere** — screening answers captured once
-  (`application_answers`) and offered wherever the question reappears.
 - **Desktop application** — CareerOS packaged (Tauri or equivalent) for
   non-technical users: installed, double-clicked, no terminal. This future
   is a permanent architectural constraint today.

@@ -102,11 +102,14 @@ nothing leaves your machine) — then restart the app.
 
 ## Features
 
+### First-Run Onboarding
+New here? `/onboarding` builds your Career Brain for you: upload résumés, cover letters, certifications, or portfolio write-ups (plain text, `.txt`/`.md`, or real `.pdf`/`.docx`), review the AI-proposed extraction, and confirm what to keep — or restore a previous CareerOS export in one step. Every step is skippable; the app never opens to an empty database.
+
 ### Career Brain Editor
 Edit your canonical career record: experiences with achievements, skills with proficiency levels and evidence links, education, projects, certifications, and career goals (target roles, industries, salary). The Brain is the source of truth; everything else derives from it.
 
 ### Job Tracker & Kanban Board
-Save and track job applications across statuses: **Saved** → **Applied** → **Interviewing** → **Offer** / **Rejected** / **Withdrawn**. Drag jobs between pipeline stages. Every status change is timestamped in `job_stage_events` for funnel and time-in-stage analytics (future feature).
+Save and track job applications across statuses: **Saved** → **Applied** → **Interviewing** → **Offer** / **Rejected** / **Withdrawn**. Drag jobs between pipeline stages. Every status change is timestamped in `job_stage_events`, feeding the funnel and time-in-stage **Analytics** page.
 
 ### Resume Generation
 Generate tailored resumes directly from your Career Brain for any job:
@@ -139,14 +142,19 @@ npm run build:ext
 ```
 Then load `extension/dist` as an unpacked extension (chrome://extensions). Paste the auth token from **Settings** into the extension popup.
 - **Clipper (popup):** save any job posting into your pipeline from any page.
-- **Sidebar (v2):** on LinkedIn, Indeed, Glassdoor, and Workday postings, a Shadow-DOM sidebar shows fit scores, stars, stretch, strengths, missing skills with inline "add to Brain" Q&A, whether you already saved/applied, and resume/cover-letter readiness — dark-mode aware, powered entirely by your local instance.
+- **Sidebar (v2):** on LinkedIn, Indeed, Glassdoor, Workday, Greenhouse, Lever, and Ashby postings, a Shadow-DOM sidebar shows fit scores, stars, stretch, strengths, missing skills with inline "add to Brain" Q&A, whether you already saved/applied, and resume/cover-letter readiness — dark-mode aware, powered entirely by your local instance.
+- **Form auto-fill:** fills application forms from your Career Brain (name, contact info, links, current role, and more) — never touches file uploads or submits anything for you; you always review and click submit yourself.
 
 ### Contacts CRM & Follow-ups
 Manage professional contacts with email, phone, LinkedIn URL, and notes. Link contacts to companies. Log interactions (email, call, coffee chat) and set follow-up reminders. One interaction per contact per job or just standalone.
 
 ### Data Export & Backup
-- **Export:** `npm run export` → creates `storage/exports/careeros-export-<date>.json` (full structured data) and `careeros-brain-<date>.md` (human-readable summary).
-- **Backup:** `npm run backup` → copies `data/` and `storage/` to `backups/backup-<timestamp>/`. Restore by copying those folders back.
+- **Download:** a "Download all my data" button on **Settings** streams the complete export as a JSON file — no terminal needed. `npm run export` does the same from the command line, plus a human-readable `careeros-brain-<date>.md` summary.
+- **Backup:** a "Create full backup" button on **Settings** copies `data/` and `storage/` into a timestamped folder — same as `npm run backup`. A reminder appears if it's been over 30 days (or never).
+- **Restore:** paste a previous export into the onboarding wizard's "I have an existing CareerOS export" step (only works on a brand-new, empty database), or copy the backed-up folders back manually.
+
+### About & Health
+`/about` shows the app version and where your data lives; `/health` is a read-only diagnostics page (database connectivity, storage writability, AI status, last backup) — both linked from Settings.
 
 ## Your Data
 
