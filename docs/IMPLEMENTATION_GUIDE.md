@@ -102,6 +102,15 @@ should be reachable from the UI (no CLI required).
 - **Plugin ecosystem** (speculative — third-party engines over the same
   Brain, under the same truthfulness and privacy rules).
 
+### Release notes convention
+
+`CHANGELOG.md` at the repo root records what shipped in each version,
+loosely following [Keep a Changelog](https://keepachangelog.com/): newest
+release on top, one section per version (`## [1.0.0]`), changes grouped as
+Added / Changed / Fixed. Add an entry in the same commit that bumps
+`package.json`'s version — the version bump is the last step of finishing a
+version, after everything in it is verified.
+
 ## 3. Coding standards
 
 - TypeScript strict; no `any` unless quarantined with a comment.
