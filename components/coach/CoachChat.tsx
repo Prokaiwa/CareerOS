@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 
 type Conversation = { id: number; title: string; messageCount: number };
 type Message = {
@@ -24,6 +25,7 @@ export function CoachChat({
     conversations[0]?.id ?? null,
   );
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const [input, setInput] = useState("");
   const [jobId, setJobId] = useState<string>("");
   const [busy, setBusy] = useState(false);
@@ -31,17 +33,21 @@ export function CoachChat({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!conversationId) {
-      setMessages([]);
-      return;
-    }
+    // Clear immediately so switching conversations never flashes the
+    // previous conversation's messages while the new ones load.
+    setMessages([]);
+    if (!conversationId) return;
     let cancelled = false;
+    setLoadingMessages(true);
     fetch(`/api/coach/${conversationId}`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
         if (!cancelled) setMessages(data);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingMessages(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -93,8 +99,11 @@ export function CoachChat({
   }
 
   async function removeConversation(id: number) {
-    if (!confirm("Delete this conversation? This can't be undone.")) return;
-    await fetch(`/api/coach/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/coach/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Failed to delete conversation");
+    }
     if (conversationId === id) {
       setConversationId(null);
       setMessages([]);
@@ -121,12 +130,13 @@ export function CoachChat({
           ))}
         </select>
         {conversationId && (
-          <button
-            onClick={() => removeConversation(conversationId)}
-            className="text-xs text-stone-400 hover:text-red-600"
-          >
-            Delete
-          </button>
+          <ConfirmButton
+            onConfirm={() => removeConversation(conversationId)}
+            prompt="Delete this conversation?"
+            confirmLabel="Delete"
+            triggerLabel="Delete"
+            triggerClassName="text-xs text-stone-400 transition-colors hover:text-red-600"
+          />
         )}
         <div className="ml-auto flex items-center gap-1.5">
           <span className="text-xs text-stone-400">Discuss job:</span>
@@ -147,7 +157,10 @@ export function CoachChat({
 
       {/* messages */}
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && !busy && (
+        {loadingMessages && (
+          <p className="pt-8 text-center text-sm text-stone-400">Loading…</p>
+        )}
+        {!loadingMessages && messages.length === 0 && !busy && (
           <p className="pt-8 text-center text-sm text-stone-400">
             Ask anything — &ldquo;Which job should I focus on?&rdquo;,
             &ldquo;Why is my fit 6.2 for job #3?&rdquo;, &ldquo;Help me prep for
@@ -194,7 +207,7 @@ export function CoachChat({
           <button
             onClick={() => void send()}
             disabled={busy || !input.trim()}
-            className="self-end rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="self-end rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
             Send
           </button>

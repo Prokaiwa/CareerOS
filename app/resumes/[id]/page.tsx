@@ -43,7 +43,7 @@ export default async function ResumeDetailPage({
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link href="/resumes" className="text-sm text-emerald-700 hover:underline">
+          <Link href="/resumes" className="text-sm text-emerald-700 hover:underline transition-colors">
             &larr; All resumes
           </Link>
           <h1 className="mt-1 text-2xl font-bold">{row.title}</h1>
@@ -64,7 +64,7 @@ export default async function ResumeDetailPage({
                 · regenerated from{" "}
                 <Link
                   href={`/resumes/${row.parentId}`}
-                  className="text-emerald-700 hover:underline"
+                  className="text-emerald-700 hover:underline transition-colors"
                 >
                   #{row.parentId}
                 </Link>
@@ -79,14 +79,14 @@ export default async function ResumeDetailPage({
           href={`/api/resumes/${row.id}/file?format=html`}
           target="_blank"
           rel="noreferrer"
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
         >
           View HTML (print to PDF)
         </a>
         <a
           href={`/api/resumes/${row.id}/file?format=md`}
           download={`resume-${row.id}.md`}
-          className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
         >
           Download Markdown
         </a>

@@ -61,7 +61,7 @@ export default function GoalsSection({ goals }: { goals: Goals }) {
         <h2 className="font-semibold">Goals</h2>
         <button
           onClick={() => setEditing((v) => !v)}
-          className="text-xs text-emerald-700 hover:underline"
+          className="text-xs text-emerald-700 hover:underline transition-colors"
         >
           {editing ? "Cancel" : "Edit"}
         </button>
@@ -119,7 +119,7 @@ export default function GoalsSection({ goals }: { goals: Goals }) {
           <button
             type="submit"
             disabled={busy}
-            className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
             Save
           </button>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { INTERACTION_TYPE_ICONS, INTERACTION_TYPE_LABELS, isInteractionType } from "@/components/contacts/constants";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 
 export type InteractionRow = {
   id: number;
@@ -15,22 +15,14 @@ export type InteractionRow = {
 
 export function InteractionTimeline({ interactions }: { interactions: InteractionRow[] }) {
   const router = useRouter();
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this interaction?")) return;
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/interactions/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        alert(body.error ?? "Failed to delete interaction");
-        return;
-      }
-      router.refresh();
-    } finally {
-      setDeletingId(null);
+    const res = await fetch(`/api/interactions/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Failed to delete interaction");
     }
+    router.refresh();
   }
 
   if (interactions.length === 0) {
@@ -63,13 +55,13 @@ export function InteractionTimeline({ interactions }: { interactions: Interactio
                   <p className="mt-1 text-xs font-medium text-amber-700">Follow up {i.followUpAt}</p>
                 )}
               </div>
-              <button
-                onClick={() => handleDelete(i.id)}
-                disabled={deletingId === i.id}
-                className="shrink-0 text-xs text-stone-400 hover:text-red-600 disabled:opacity-50"
-              >
-                {deletingId === i.id ? "Deleting..." : "Delete"}
-              </button>
+              <ConfirmButton
+                onConfirm={() => handleDelete(i.id)}
+                prompt="Delete this interaction?"
+                confirmLabel="Delete"
+                triggerLabel="Delete"
+                triggerClassName="shrink-0 text-xs text-stone-400 transition-colors hover:text-red-600"
+              />
             </div>
           </li>
         );

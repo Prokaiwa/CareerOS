@@ -23,7 +23,7 @@ export default async function CompanyPage({
 
   return (
     <div className="max-w-4xl">
-      <Link href="/companies" className="text-sm text-emerald-700 hover:underline">
+      <Link href="/companies" className="text-sm text-emerald-700 hover:underline transition-colors">
         ← Companies
       </Link>
       <div className="mt-2">
@@ -33,7 +33,7 @@ export default async function CompanyPage({
           {company.website && (
             <>
               {" · "}
-              <a href={company.website} target="_blank" className="text-emerald-700 hover:underline">
+              <a href={company.website} target="_blank" className="text-emerald-700 hover:underline transition-colors">
                 {company.website}
               </a>
             </>
@@ -63,7 +63,7 @@ export default async function CompanyPage({
             <ul className="mt-2 space-y-1.5 text-sm">
               {dossier.jobs.map((j) => (
                 <li key={j.id} className="flex flex-wrap items-baseline gap-2">
-                  <Link href={`/jobs/${j.id}`} className="font-medium text-emerald-700 hover:underline">
+                  <Link href={`/jobs/${j.id}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                     {j.title}
                   </Link>
                   <span className="text-xs capitalize text-stone-500">{j.status}</span>
@@ -86,7 +86,7 @@ export default async function CompanyPage({
               <ul className="mt-2 space-y-1.5 text-sm">
                 {dossier.contacts.map((c) => (
                   <li key={c.id}>
-                    <Link href={`/contacts/${c.id}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/contacts/${c.id}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {c.name}
                     </Link>
                     {c.role && <span className="text-stone-500"> — {c.role}</span>}

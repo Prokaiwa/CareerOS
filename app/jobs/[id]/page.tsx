@@ -104,9 +104,11 @@ export default async function JobDetailPage({
 
   return (
     <div className="max-w-4xl">
-      <Link href="/jobs" className="text-sm text-emerald-700 hover:underline">
+      <Link href="/jobs" className="text-sm text-emerald-700 hover:underline transition-colors">
         ← Back to jobs
       </Link>
+
+      <h1 className="mt-2 text-2xl font-bold">{job.title}</h1>
 
       <div className="mt-3 flex items-center gap-3">
         <StatusBadge status={job.status} />
@@ -116,6 +118,7 @@ export default async function JobDetailPage({
       <div className="mt-4 space-y-6">
         <JobEditForm
           jobId={job.id}
+          companyId={company?.id ?? null}
           initial={{
             title: job.title,
             companyName: company?.name ?? "",

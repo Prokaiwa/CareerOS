@@ -46,7 +46,7 @@ export function RegenerateButton({
       <button
         onClick={handleClick}
         disabled={submitting}
-        className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+        className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
       >
         {submitting ? "Regenerating..." : "Regenerate with this as parent"}
       </button>

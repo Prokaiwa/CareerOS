@@ -38,8 +38,8 @@ export default async function CoverLetterPage({
 
   return (
     <div className="max-w-3xl">
-      <Link href="/resumes" className="text-sm text-emerald-700 hover:underline">
-        ← Documents
+      <Link href="/coverletters" className="text-sm text-emerald-700 hover:underline transition-colors">
+        ← All cover letters
       </Link>
       <div className="mt-2 flex items-start justify-between gap-4">
         <div>
@@ -51,7 +51,7 @@ export default async function CoverLetterPage({
                 {" · derived from "}
                 <Link
                   href={`/coverletters/${row.parentId}`}
-                  className="text-emerald-700 hover:underline"
+                  className="text-emerald-700 hover:underline transition-colors"
                 >
                   version #{row.parentId}
                 </Link>
@@ -63,7 +63,7 @@ export default async function CoverLetterPage({
               For:{" "}
               <Link
                 href={`/jobs/${jobRow.job.id}`}
-                className="text-emerald-700 hover:underline"
+                className="text-emerald-700 hover:underline transition-colors"
               >
                 {jobRow.job.title}
                 {jobRow.companyName ? ` @ ${jobRow.companyName}` : ""}
@@ -86,14 +86,14 @@ export default async function CoverLetterPage({
         <a
           href={`/api/cover-letters/${row.id}/file?format=html`}
           target="_blank"
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
         >
           View HTML (print to PDF)
         </a>
         <a
           href={`/api/cover-letters/${row.id}/file?format=md`}
           download
-          className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
         >
           Download Markdown
         </a>

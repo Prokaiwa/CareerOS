@@ -79,11 +79,11 @@ function CertificationForm({
         <button
           type="submit"
           disabled={busy}
-          className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
           Save
         </button>
-        <button type="button" onClick={onCancel} className="text-xs text-stone-400 hover:text-stone-600">
+        <button type="button" onClick={onCancel} className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
           Cancel
         </button>
       </div>
@@ -144,17 +144,17 @@ function CertificationCard({ cert }: { cert: Certification }) {
             href={cert.credentialUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-xs text-emerald-700 hover:underline"
+            className="text-xs text-emerald-700 hover:underline transition-colors"
           >
             {cert.credentialUrl}
           </a>
         )}
       </div>
       <div className="flex shrink-0 gap-2">
-        <button onClick={() => setEditing(true)} className="text-xs text-emerald-700 hover:underline">
+        <button onClick={() => setEditing(true)} className="text-xs text-emerald-700 hover:underline transition-colors">
           Edit
         </button>
-        <button onClick={remove} className="text-xs text-stone-400 hover:text-red-600">
+        <button onClick={remove} className="text-xs text-stone-400 hover:text-red-600 transition-colors">
           Delete
         </button>
       </div>
@@ -190,7 +190,7 @@ export default function CertificationsSection({
         <h2 className="font-semibold">Certifications</h2>
         <button
           onClick={() => setAdding((v) => !v)}
-          className="text-xs text-emerald-700 hover:underline"
+          className="text-xs text-emerald-700 hover:underline transition-colors"
         >
           {adding ? "Cancel" : "+ Add"}
         </button>

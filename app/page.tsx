@@ -89,7 +89,7 @@ export default function Dashboard() {
           <Link
             key={s.label}
             href={s.href}
-            className="rounded-lg border border-stone-200 bg-white p-4 hover:border-emerald-500"
+            className="rounded-lg border border-stone-200 bg-white p-4 hover:border-emerald-500 transition-colors"
           >
             <div className="text-2xl font-semibold">{s.value}</div>
             <div className="mt-1 text-xs text-stone-500">{s.label}</div>
@@ -110,7 +110,7 @@ export default function Dashboard() {
               <ul className="mt-2 space-y-1.5 text-sm">
                 {review.jobsNeedingAttention.slice(0, 4).map((j) => (
                   <li key={`${j.jobId}-${j.reason}`}>
-                    <Link href={`/jobs/${j.jobId}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/jobs/${j.jobId}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {j.title}
                     </Link>
                     {j.company && <span className="text-stone-500"> @ {j.company}</span>}
@@ -129,7 +129,7 @@ export default function Dashboard() {
               <ul className="mt-2 space-y-1.5 text-sm">
                 {review.followUpsDue.slice(0, 4).map((f) => (
                   <li key={`${f.contactId}-${f.dueDate}`}>
-                    <Link href={`/contacts/${f.contactId}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/contacts/${f.contactId}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {f.name}
                     </Link>
                     {f.company && <span className="text-stone-500"> @ {f.company}</span>}

@@ -44,7 +44,7 @@ export function InterviewPrepPanel({
           <button
             onClick={() => void load(false)}
             disabled={busy}
-            className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+            className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
           >
             {busy ? "Preparing…" : "Prepare"}
           </button>
@@ -83,7 +83,7 @@ export function InterviewPrepPanel({
           <button
             onClick={() => void load(true)}
             disabled={busy}
-            className="text-xs text-emerald-700 hover:underline disabled:opacity-50"
+            className="text-xs text-emerald-700 hover:underline disabled:opacity-50 transition-colors"
           >
             {busy ? "Sharpening…" : "Sharpen questions with AI"}
           </button>

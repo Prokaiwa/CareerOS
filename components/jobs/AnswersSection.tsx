@@ -65,7 +65,7 @@ export function AnswersSection({ jobId, answers }: { jobId: number; answers: Ans
         {!open ? (
           <button
             onClick={() => setOpen(true)}
-            className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+            className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
           >
             Add answer
           </button>
@@ -93,14 +93,14 @@ export function AnswersSection({ jobId, answers }: { jobId: number; answers: Ans
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Saving..." : "Save"}
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+                className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
               >
                 Cancel
               </button>

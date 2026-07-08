@@ -75,40 +75,52 @@ export default async function BoardPage() {
         Move a job to a new stage with the select on its card.
       </p>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 overflow-x-auto md:grid-cols-3 lg:grid-cols-6">
-        {columns.map((col) => (
-          <div key={col.status} className="min-w-[220px] rounded-lg border border-stone-200 bg-stone-50 p-3">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-stone-700">{COLUMN_LABELS[col.status]}</h2>
-              <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs text-stone-600">
-                {col.jobs.length}
-              </span>
-            </div>
-            <div className="space-y-2">
-              {col.jobs.map((job) => (
-                <div key={job.id} className="rounded-lg border border-stone-200 bg-white p-3 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <Link href={`/jobs/${job.id}`} className="text-sm font-medium text-emerald-700 hover:underline">
-                      {job.title}
-                    </Link>
-                    <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                      {fitByJob.get(job.id)?.toFixed(1)}
-                    </span>
+      {jobs.length === 0 ? (
+        <div className="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
+          <p className="p-6 text-sm text-stone-500">
+            No jobs yet.{" "}
+            <Link href="/jobs" className="text-emerald-700 transition-colors hover:underline">
+              Add one on the Jobs page
+            </Link>
+            .
+          </p>
+        </div>
+      ) : (
+        <div className="mt-6 grid grid-cols-1 gap-4 overflow-x-auto md:grid-cols-3 lg:grid-cols-6">
+          {columns.map((col) => (
+            <div key={col.status} className="min-w-[220px] rounded-lg border border-stone-200 bg-stone-50 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-stone-700">{COLUMN_LABELS[col.status]}</h2>
+                <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs text-stone-600">
+                  {col.jobs.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {col.jobs.map((job) => (
+                  <div key={job.id} className="rounded-lg border border-stone-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link href={`/jobs/${job.id}`} className="text-sm font-medium text-emerald-700 hover:underline transition-colors">
+                        {job.title}
+                      </Link>
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+                        {fitByJob.get(job.id)?.toFixed(1)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-stone-600">{job.companyName ?? "—"}</p>
+                    <p className="mt-1 text-[11px] text-stone-400">
+                      {daysSince(latestEventByJob.get(job.id) ?? job.updatedAt.getTime())}d in stage
+                    </p>
+                    <MoveSelect jobId={job.id} status={job.status} className="mt-2" />
                   </div>
-                  <p className="mt-0.5 text-xs text-stone-600">{job.companyName ?? "—"}</p>
-                  <p className="mt-1 text-[11px] text-stone-400">
-                    {daysSince(latestEventByJob.get(job.id) ?? job.updatedAt.getTime())}d in stage
-                  </p>
-                  <MoveSelect jobId={job.id} status={job.status} className="mt-2" />
-                </div>
-              ))}
-              {col.jobs.length === 0 && (
-                <p className="text-xs text-stone-400">No jobs</p>
-              )}
+                ))}
+                {col.jobs.length === 0 && (
+                  <p className="text-xs text-stone-400">No jobs</p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

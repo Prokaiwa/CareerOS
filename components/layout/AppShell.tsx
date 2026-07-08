@@ -9,8 +9,10 @@ const nav = [
   { href: "/import", label: "Import" },
   { href: "/jobs", label: "Jobs" },
   { href: "/board", label: "Board" },
+  { href: "/companies", label: "Companies" },
   { href: "/analytics", label: "Analytics" },
   { href: "/resumes", label: "Resumes" },
+  { href: "/coverletters", label: "Cover Letters" },
   { href: "/coach", label: "Coach" },
   { href: "/contacts", label: "Contacts" },
   { href: "/settings", label: "Settings" },
@@ -40,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`block rounded-md px-2 py-1.5 text-sm ${
+                className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
                   active
                     ? "bg-stone-100 font-medium text-stone-900"
                     : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"

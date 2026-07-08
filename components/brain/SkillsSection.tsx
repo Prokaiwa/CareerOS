@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import type { Skill } from "./types";
 
 type FormState = {
@@ -70,11 +71,11 @@ function SkillForm({
       <button
         type="submit"
         disabled={busy}
-        className="rounded bg-emerald-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded bg-emerald-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
       >
         Save
       </button>
-      <button type="button" onClick={onCancel} className="text-[10px] text-stone-400 hover:text-stone-600">
+      <button type="button" onClick={onCancel} className="text-[10px] text-stone-400 hover:text-stone-600 transition-colors">
         Cancel
       </button>
     </form>
@@ -101,7 +102,11 @@ function SkillChip({ skill }: { skill: Skill }) {
   }
 
   async function remove() {
-    await fetch(`/api/brain/skills/${skill.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/brain/skills/${skill.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Failed to delete skill");
+    }
     router.refresh();
   }
 
@@ -132,13 +137,17 @@ function SkillChip({ skill }: { skill: Skill }) {
       )}
       <button
         onClick={() => setEditing(true)}
-        className="ml-1 text-stone-300 opacity-0 hover:text-emerald-700 group-hover:opacity-100"
+        className="ml-1 text-stone-300 opacity-0 transition-colors hover:text-emerald-700 group-hover:opacity-100 focus-visible:opacity-100"
       >
         edit
       </button>
-      <button onClick={remove} className="text-stone-300 opacity-0 hover:text-red-600 group-hover:opacity-100">
-        ×
-      </button>
+      <ConfirmButton
+        onConfirm={remove}
+        prompt="Delete?"
+        confirmLabel="Delete"
+        triggerLabel="×"
+        triggerClassName="text-stone-300 opacity-0 transition-colors hover:text-red-600 group-hover:opacity-100 focus-visible:opacity-100"
+      />
     </span>
   );
 }
@@ -174,7 +183,7 @@ export default function SkillsSection({ skills }: { skills: Skill[] }) {
         <h2 className="font-semibold">Skills</h2>
         <button
           onClick={() => setAdding((v) => !v)}
-          className="text-xs text-emerald-700 hover:underline"
+          className="text-xs text-emerald-700 hover:underline transition-colors"
         >
           {adding ? "Cancel" : "+ Add"}
         </button>

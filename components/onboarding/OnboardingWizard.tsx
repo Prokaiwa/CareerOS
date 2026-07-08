@@ -107,19 +107,19 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
           <div className="mt-8 flex flex-col items-center gap-3">
             <button
               onClick={() => setStep("resume")}
-              className="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+              className="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
             >
               Get started
             </button>
             <button
               onClick={() => setRestoreMode(true)}
-              className="text-sm text-emerald-700 underline hover:no-underline"
+              className="text-sm text-emerald-700 underline hover:no-underline transition-colors"
             >
               I have an existing CareerOS export
             </button>
             <button
               onClick={() => finish("skip")}
-              className="text-sm text-stone-500 hover:text-stone-700"
+              className="text-sm text-stone-500 hover:text-stone-700 transition-colors"
             >
               Skip setup, I&apos;ll fill it in myself
             </button>
@@ -131,13 +131,13 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
               Only works on a brand-new database — if you already have any data here, this will
               refuse rather than merge or overwrite it.
             </p>
-            <label className="mt-3 inline-block cursor-pointer rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <label className="mt-3 inline-block cursor-pointer rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors">
               {restoreBusy ? "Restoring…" : "Choose export file (.json)"}
               <input type="file" accept=".json,application/json" onChange={onRestoreFile} disabled={restoreBusy} className="hidden" />
             </label>
             {restoreError && <p className="mt-2 text-xs text-red-600">{restoreError}</p>}
             <div className="mt-3">
-              <button onClick={() => setRestoreMode(false)} className="text-xs text-stone-500 hover:text-stone-700">
+              <button onClick={() => setRestoreMode(false)} className="text-xs text-stone-500 hover:text-stone-700 transition-colors">
                 ← Back
               </button>
             </div>
@@ -162,7 +162,7 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
         <div className="mt-6 border-t border-stone-200 pt-4">
           <button
             onClick={() => (doc.next === "complete" ? goToCompletion() : setStep(doc.next))}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
           >
             Continue
           </button>
@@ -211,7 +211,7 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
       )}
       <button
         onClick={() => finish("complete")}
-        className="mt-6 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+        className="mt-6 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
       >
         Go to Dashboard
       </button>

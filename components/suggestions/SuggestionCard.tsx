@@ -80,20 +80,20 @@ export default function SuggestionCard({
           <div className="mt-2 flex gap-2">
             <button
               onClick={() => setStep("form")}
-              className="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+              className="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
             >
               Yes
             </button>
             <button
               onClick={handleNo}
               disabled={busy}
-              className="rounded border border-stone-200 px-2.5 py-1 text-xs text-stone-600 hover:bg-stone-100 disabled:opacity-50"
+              className="rounded border border-stone-200 px-2.5 py-1 text-xs text-stone-600 hover:bg-stone-100 disabled:opacity-50 transition-colors"
             >
               No
             </button>
             <button
               onClick={() => setStep("hidden")}
-              className="px-2.5 py-1 text-xs text-stone-400 hover:text-stone-600"
+              className="px-2.5 py-1 text-xs text-stone-400 hover:text-stone-600 transition-colors"
             >
               Not now
             </button>
@@ -111,11 +111,13 @@ export default function SuggestionCard({
               value={where}
               onChange={(e) => setWhere(e.target.value)}
               placeholder="Where?"
+              aria-label="Where you used this skill"
               className="w-40 rounded border border-stone-200 px-2 py-1 text-xs"
             />
             <select
               value={howOften}
               onChange={(e) => setHowOften(e.target.value)}
+              aria-label="How often you used this skill"
               className="rounded border border-stone-200 px-2 py-1 text-xs"
             >
               <option value="">How often?</option>
@@ -126,6 +128,7 @@ export default function SuggestionCard({
             <select
               value={proficiency}
               onChange={(e) => setProficiency(Number(e.target.value))}
+              aria-label="Proficiency"
               className="rounded border border-stone-200 px-2 py-1 text-xs"
             >
               {[1, 2, 3, 4, 5].map((p) => (
@@ -136,6 +139,7 @@ export default function SuggestionCard({
               <select
                 value={experienceId}
                 onChange={(e) => setExperienceId(e.target.value)}
+                aria-label="Attach evidence to experience"
                 className="rounded border border-stone-200 px-2 py-1 text-xs"
               >
                 <option value="">Attach evidence to experience (optional)</option>
@@ -149,6 +153,7 @@ export default function SuggestionCard({
             value={accomplishment}
             onChange={(e) => setAccomplishment(e.target.value)}
             placeholder="What did you accomplish with it?"
+            aria-label="What did you accomplish with it"
             rows={2}
             className="w-full rounded border border-stone-200 px-2 py-1 text-xs"
           />
@@ -156,14 +161,14 @@ export default function SuggestionCard({
             <button
               type="submit"
               disabled={busy}
-              className="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >
               Add to Career Brain
             </button>
             <button
               type="button"
               onClick={() => setStep("ask")}
-              className="px-2.5 py-1 text-xs text-stone-400 hover:text-stone-600"
+              className="px-2.5 py-1 text-xs text-stone-400 hover:text-stone-600 transition-colors"
             >
               Back
             </button>

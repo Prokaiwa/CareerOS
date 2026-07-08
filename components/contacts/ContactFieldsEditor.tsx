@@ -93,7 +93,7 @@ export function ContactFieldsEditor({ contact }: { contact: EditableContact }) {
           <h2 className="font-semibold">Details</h2>
           <button
             onClick={() => setEditing(true)}
-            className="text-sm text-emerald-700 hover:underline"
+            className="text-sm text-emerald-700 hover:underline transition-colors"
           >
             Edit
           </button>
@@ -114,7 +114,7 @@ export function ContactFieldsEditor({ contact }: { contact: EditableContact }) {
     <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-stone-200 bg-white p-5">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Edit details</h2>
-        <button type="button" onClick={cancel} className="text-sm text-stone-500 hover:text-stone-700">
+        <button type="button" onClick={cancel} className="text-sm text-stone-500 hover:text-stone-700 transition-colors">
           Cancel
         </button>
       </div>
@@ -152,7 +152,7 @@ export function ContactFieldsEditor({ contact }: { contact: EditableContact }) {
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
       >
         {submitting ? "Saving..." : "Save"}
       </button>

@@ -34,9 +34,9 @@ export default function CompaniesPage() {
             </thead>
             <tbody>
               {companies.map((c) => (
-                <tr key={c.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                <tr key={c.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                   <td className="px-4 py-2.5">
-                    <Link href={`/companies/${c.id}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/companies/${c.id}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {c.name}
                     </Link>
                   </td>

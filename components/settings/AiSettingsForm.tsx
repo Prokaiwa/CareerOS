@@ -27,6 +27,7 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
   const [status, setStatus] = useState<Status>(initial);
   const [busy, setBusy] = useState<"save" | "test" | null>(null);
   const [test, setTest] = useState<{ ok: boolean; detail: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const current = PROVIDERS.find((p) => p.value === provider);
   const isLocal = current?.local ?? false;
@@ -34,6 +35,7 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
   async function save() {
     setBusy("save");
     setTest(null);
+    setError(null);
     try {
       const body: Record<string, string> = { provider, model };
       if (apiKey.trim()) body.apiKey = apiKey.trim();
@@ -42,10 +44,13 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        setStatus(await res.json());
-        setApiKey("");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setError(errBody.error ?? "Failed to save AI settings");
+        return;
       }
+      setStatus(await res.json());
+      setApiKey("");
     } finally {
       setBusy(null);
     }
@@ -54,8 +59,14 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
   async function runTest() {
     setBusy("test");
     setTest(null);
+    setError(null);
     try {
       const res = await fetch("/api/settings/ai/test", { method: "POST" });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setError(errBody.error ?? "Failed to test the AI connection");
+        return;
+      }
       setTest(await res.json());
       // refresh status too
       const s = await fetch("/api/settings/ai").then((r) => r.json());
@@ -133,14 +144,14 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
           <button
             onClick={save}
             disabled={busy !== null}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
             {busy === "save" ? "Saving…" : "Save"}
           </button>
           <button
             onClick={runTest}
             disabled={busy !== null || !status.enabled}
-            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
             title={status.enabled ? "" : "Save a provider/key first"}
           >
             {busy === "test" ? "Testing…" : "Test connection"}
@@ -153,6 +164,7 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
             {test.detail}
           </p>
         )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     </div>
   );

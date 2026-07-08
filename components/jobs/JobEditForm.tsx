@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -20,9 +21,11 @@ const inputClass =
 
 export function JobEditForm({
   jobId,
+  companyId,
   initial,
 }: {
   jobId: number;
+  companyId: number | null;
   initial: JobFields;
 }) {
   const router = useRouter();
@@ -96,12 +99,27 @@ export function JobEditForm({
       <div className="rounded-lg border border-stone-200 bg-white p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold">{form.title}</h1>
-            <p className="mt-0.5 text-stone-600">{form.companyName || "No company"}</p>
+            <h2 className="text-xl font-bold">{form.title}</h2>
+            <p className="mt-0.5 text-stone-600">
+              {form.companyName ? (
+                companyId ? (
+                  <Link
+                    href={`/companies/${companyId}`}
+                    className="transition-colors hover:text-emerald-700 hover:underline"
+                  >
+                    {form.companyName}
+                  </Link>
+                ) : (
+                  form.companyName
+                )
+              ) : (
+                "No company"
+              )}
+            </p>
           </div>
           <button
             onClick={() => setEditing(true)}
-            className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+            className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
           >
             Edit
           </button>
@@ -127,7 +145,7 @@ export function JobEditForm({
             <dt className="text-xs text-stone-500">URL</dt>
             <dd className="truncate text-stone-800">
               {form.url ? (
-                <a href={form.url} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">
+                <a href={form.url} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline transition-colors">
                   {form.url}
                 </a>
               ) : (
@@ -216,7 +234,7 @@ export function JobEditForm({
         <button
           onClick={handleSave}
           disabled={submitting}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
           {submitting ? "Saving..." : "Save"}
         </button>
@@ -225,7 +243,7 @@ export function JobEditForm({
             setForm(initial);
             setEditing(false);
           }}
-          className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+          className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
         >
           Cancel
         </button>

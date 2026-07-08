@@ -1,60 +1,47 @@
 import Link from "next/link";
-import { isAiEnabled } from "@/lib/ai";
 import { desc, eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
-import { config } from "@/lib/config";
-import { GenerateResumeForm } from "@/components/resumes/GenerateResumeForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function ResumesPage() {
+export default async function CoverLettersPage() {
   const versions = db
     .select({
-      id: tables.resumeVersions.id,
-      title: tables.resumeVersions.title,
-      jobId: tables.resumeVersions.jobId,
+      id: tables.coverLetterVersions.id,
+      title: tables.coverLetterVersions.title,
+      jobId: tables.coverLetterVersions.jobId,
       jobTitle: tables.jobs.title,
       companyName: tables.companies.name,
-      parentId: tables.resumeVersions.parentId,
-      createdAt: tables.resumeVersions.createdAt,
+      parentId: tables.coverLetterVersions.parentId,
+      createdAt: tables.coverLetterVersions.createdAt,
+      aiAssisted: tables.coverLetterVersions.aiAssisted,
     })
-    .from(tables.resumeVersions)
-    .leftJoin(tables.jobs, eq(tables.resumeVersions.jobId, tables.jobs.id))
+    .from(tables.coverLetterVersions)
+    .leftJoin(tables.jobs, eq(tables.coverLetterVersions.jobId, tables.jobs.id))
     .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
-    .orderBy(desc(tables.resumeVersions.createdAt))
-    .all();
-
-  const jobs = db
-    .select({
-      id: tables.jobs.id,
-      title: tables.jobs.title,
-      companyName: tables.companies.name,
-    })
-    .from(tables.jobs)
-    .leftJoin(tables.companies, eq(tables.jobs.companyId, tables.companies.id))
-    .orderBy(desc(tables.jobs.createdAt))
+    .orderBy(desc(tables.coverLetterVersions.createdAt))
     .all();
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Resumes</h1>
+      <h1 className="text-2xl font-bold">Cover Letters</h1>
       <p className="mt-1 text-sm text-stone-500">
-        Immutable snapshots generated from your{" "}
+        Composed from your{" "}
         <Link className="text-emerald-700 underline" href="/brain">
           Career Brain
         </Link>
-        . Editing the Brain never changes a resume already generated — make a
-        new version instead.
+        , tailored to a specific job. Generate one from a job&apos;s Documents
+        section on its{" "}
+        <Link className="text-emerald-700 underline" href="/jobs">
+          job page
+        </Link>
+        .
       </p>
 
-      <div className="mt-6">
-        <GenerateResumeForm jobs={jobs} aiEnabled={isAiEnabled()} />
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
         {versions.length === 0 ? (
           <p className="p-6 text-sm text-stone-500">
-            No resumes yet. Generate one above.
+            No cover letters yet. Generate one from a job page.
           </p>
         ) : (
           <table className="w-full text-sm">
@@ -70,15 +57,20 @@ export default async function ResumesPage() {
               {versions.map((v) => (
                 <tr
                   key={v.id}
-                  className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors"
+                  className="border-b border-stone-100 transition-colors last:border-0 hover:bg-stone-50"
                 >
                   <td className="px-4 py-2.5">
                     <Link
-                      href={`/resumes/${v.id}`}
-                      className="font-medium text-emerald-700 hover:underline transition-colors"
+                      href={`/coverletters/${v.id}`}
+                      className="font-medium text-emerald-700 hover:underline"
                     >
                       {v.title}
                     </Link>
+                    {v.aiAssisted ? (
+                      <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                        AI-assisted
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-2.5 text-stone-600">
                     {v.jobTitle
@@ -91,8 +83,8 @@ export default async function ResumesPage() {
                   <td className="px-4 py-2.5 text-stone-500">
                     {v.parentId ? (
                       <Link
-                        href={`/resumes/${v.parentId}`}
-                        className="text-xs text-emerald-700 hover:underline transition-colors"
+                        href={`/coverletters/${v.parentId}`}
+                        className="text-xs text-emerald-700 hover:underline"
                       >
                         regenerated from #{v.parentId}
                       </Link>

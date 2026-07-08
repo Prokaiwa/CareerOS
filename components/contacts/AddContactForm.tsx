@@ -58,7 +58,7 @@ export function AddContactForm() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
       >
         Add contact
       </button>
@@ -75,7 +75,7 @@ export function AddContactForm() {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-sm text-stone-500 hover:text-stone-700"
+          className="text-sm text-stone-500 hover:text-stone-700 transition-colors"
         >
           Cancel
         </button>
@@ -145,7 +145,7 @@ export function AddContactForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
       >
         {submitting ? "Saving..." : "Save contact"}
       </button>

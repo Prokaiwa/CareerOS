@@ -41,7 +41,7 @@ function ActionPair({
         <>
           <a
             href={openHref}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
           >
             Open {label}
           </a>
@@ -54,7 +54,7 @@ function ActionPair({
           <button
             onClick={handleGenerate}
             disabled={busy}
-            className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+            className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
           >
             {busy ? "Generating…" : `Generate ${label}`}
           </button>

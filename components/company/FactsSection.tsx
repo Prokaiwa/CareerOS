@@ -18,17 +18,24 @@ export function FactsSection({
   const [content, setContent] = useState("");
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
     if (!content.trim()) return;
     setBusy(true);
+    setError(null);
     try {
-      await fetch(`/api/companies/${companyId}/facts`, {
+      const res = await fetch(`/api/companies/${companyId}/facts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, content, source }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error ?? "Failed to add fact");
+        return;
+      }
       setContent("");
       setSource("");
       router.refresh();
@@ -38,7 +45,13 @@ export function FactsSection({
   }
 
   async function remove(id: number) {
-    await fetch(`/api/company-facts/${id}`, { method: "DELETE" });
+    setError(null);
+    const res = await fetch(`/api/company-facts/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Failed to delete fact");
+      return;
+    }
     router.refresh();
   }
 
@@ -70,7 +83,7 @@ export function FactsSection({
                     </span>
                     <button
                       onClick={() => void remove(f.id)}
-                      className="text-xs text-stone-300 hover:text-red-600"
+                      className="text-xs text-stone-300 hover:text-red-600 transition-colors"
                       title="Delete fact"
                     >
                       ✕
@@ -111,11 +124,12 @@ export function FactsSection({
           <button
             type="submit"
             disabled={busy || !content.trim()}
-            className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
             Add
           </button>
         </div>
+        {error && <p className="text-xs text-red-600">{error}</p>}
       </form>
     </div>
   );

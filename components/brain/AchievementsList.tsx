@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import type { Achievement, Skill } from "./types";
 
 export default function AchievementsList({
@@ -49,7 +50,11 @@ export default function AchievementsList({
   }
 
   async function remove(id: number) {
-    await fetch(`/api/brain/achievements/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/brain/achievements/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Failed to delete achievement");
+    }
     router.refresh();
   }
 
@@ -80,12 +85,13 @@ export default function AchievementsList({
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => remove(a.id)}
-                className="shrink-0 text-[10px] text-stone-400 opacity-0 hover:text-red-600 group-hover:opacity-100"
-              >
-                delete
-              </button>
+              <ConfirmButton
+                onConfirm={() => remove(a.id)}
+                prompt="Delete?"
+                confirmLabel="Delete"
+                triggerLabel="delete"
+                triggerClassName="shrink-0 text-[10px] text-stone-400 opacity-0 transition-colors hover:text-red-600 group-hover:opacity-100 focus-visible:opacity-100"
+              />
             </li>
           ))}
         </ul>
@@ -132,14 +138,14 @@ export default function AchievementsList({
             <button
               type="submit"
               disabled={busy}
-              className="rounded bg-emerald-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded bg-emerald-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => setAdding(false)}
-              className="text-[10px] text-stone-400 hover:text-stone-600"
+              className="text-[10px] text-stone-400 hover:text-stone-600 transition-colors"
             >
               Cancel
             </button>
@@ -148,7 +154,7 @@ export default function AchievementsList({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="mt-2 text-[10px] text-emerald-700 hover:underline"
+          className="mt-2 text-[10px] text-emerald-700 hover:underline transition-colors"
         >
           + Add achievement
         </button>

@@ -59,7 +59,7 @@ export default async function ContactDetailPage({
   return (
     <div>
       <div className="mb-4">
-        <Link href="/contacts" className="text-sm text-stone-500 hover:text-stone-700">
+        <Link href="/contacts" className="text-sm text-stone-500 hover:text-stone-700 transition-colors">
           ← Contacts
         </Link>
       </div>

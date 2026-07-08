@@ -18,6 +18,7 @@ export function AiNarrative({
 }) {
   const [text, setText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!aiEnabled) return null;
 
@@ -33,23 +34,36 @@ export function AiNarrative({
   }
 
   return (
-    <button
-      onClick={async () => {
-        setBusy(true);
-        try {
-          const res = await fetch(`${url}?ai=1`);
-          if (res.ok) {
+    <div className="mt-3">
+      <button
+        onClick={async () => {
+          setBusy(true);
+          setError(null);
+          try {
+            const res = await fetch(`${url}?ai=1`);
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              setError(body.error ?? "Couldn't reach the AI provider.");
+              return;
+            }
             const body = await res.json();
-            if (typeof body[field] === "string" && body[field]) setText(body[field]);
+            if (typeof body[field] === "string" && body[field]) {
+              setText(body[field]);
+            } else {
+              setError("No explanation was returned.");
+            }
+          } catch {
+            setError("Couldn't reach the AI provider.");
+          } finally {
+            setBusy(false);
           }
-        } finally {
-          setBusy(false);
-        }
-      }}
-      disabled={busy}
-      className="mt-3 text-xs text-emerald-700 hover:underline disabled:opacity-50"
-    >
-      {busy ? "Thinking…" : "Explain with AI"}
-    </button>
+        }}
+        disabled={busy}
+        className="text-xs text-emerald-700 transition-colors hover:underline disabled:opacity-50"
+      >
+        {busy ? "Thinking…" : "Explain with AI"}
+      </button>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
   );
 }

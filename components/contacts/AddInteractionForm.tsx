@@ -67,7 +67,7 @@ export function AddInteractionForm({ contactId, jobs }: { contactId: number; job
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
       >
         Log interaction
       </button>
@@ -78,7 +78,7 @@ export function AddInteractionForm({ contactId, jobs }: { contactId: number; job
     <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Log interaction</h3>
-        <button type="button" onClick={() => setOpen(false)} className="text-sm text-stone-500 hover:text-stone-700">
+        <button type="button" onClick={() => setOpen(false)} className="text-sm text-stone-500 hover:text-stone-700 transition-colors">
           Cancel
         </button>
       </div>
@@ -136,7 +136,7 @@ export function AddInteractionForm({ contactId, jobs }: { contactId: number; job
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
       >
         {submitting ? "Saving..." : "Save interaction"}
       </button>

@@ -112,9 +112,9 @@ export default async function JobsPage({
             </thead>
             <tbody>
               {scored.map(({ job, report, resumeReady, letterReady }) => (
-                <tr key={job.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                <tr key={job.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                   <td className="px-4 py-2.5">
-                    <Link href={`/jobs/${job.id}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/jobs/${job.id}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {job.title}
                     </Link>
                     <div className="text-xs text-stone-400">{job.location || ""}</div>

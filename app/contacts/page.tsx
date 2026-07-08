@@ -86,7 +86,7 @@ export default async function ContactsPage({
                   <span className="mr-1.5">
                     {isInteractionType(f.type) ? INTERACTION_TYPE_ICONS[f.type] : "•"}
                   </span>
-                  <Link href={`/contacts/${f.contactId}`} className="font-medium text-emerald-700 hover:underline">
+                  <Link href={`/contacts/${f.contactId}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                     {f.contactName}
                   </Link>
                   {f.notes ? <span className="text-stone-500"> — {f.notes}</span> : null}
@@ -108,14 +108,14 @@ export default async function ContactsPage({
         />
         <button
           type="submit"
-          className="rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
+          className="rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
         >
           Search
         </button>
         {q && (
           <Link
             href="/contacts"
-            className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:text-stone-700"
+            className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:text-stone-700 transition-colors"
           >
             Clear
           </Link>
@@ -139,9 +139,9 @@ export default async function ContactsPage({
             </thead>
             <tbody>
               {contactRows.map((c) => (
-                <tr key={c.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                <tr key={c.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                   <td className="px-4 py-2.5">
-                    <Link href={`/contacts/${c.id}`} className="font-medium text-emerald-700 hover:underline">
+                    <Link href={`/contacts/${c.id}`} className="font-medium text-emerald-700 hover:underline transition-colors">
                       {c.name}
                     </Link>
                   </td>

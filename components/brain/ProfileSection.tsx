@@ -49,7 +49,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
         <h2 className="font-semibold">Profile</h2>
         <button
           onClick={() => setEditing((v) => !v)}
-          className="text-xs text-emerald-700 hover:underline"
+          className="text-xs text-emerald-700 hover:underline transition-colors"
         >
           {editing ? "Cancel" : "Edit"}
         </button>
@@ -62,30 +62,35 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
               value={form.fullName}
               onChange={(e) => setForm({ ...form, fullName: e.target.value })}
               placeholder="Full name"
+              aria-label="Full name"
               className="rounded border border-stone-200 px-2 py-1 text-sm"
             />
             <input
               value={form.headline}
               onChange={(e) => setForm({ ...form, headline: e.target.value })}
               placeholder="Headline"
+              aria-label="Headline"
               className="rounded border border-stone-200 px-2 py-1 text-sm"
             />
             <input
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="Email"
+              aria-label="Email"
               className="rounded border border-stone-200 px-2 py-1 text-sm"
             />
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="Phone"
+              aria-label="Phone"
               className="rounded border border-stone-200 px-2 py-1 text-sm"
             />
             <input
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
               placeholder="Location"
+              aria-label="Location"
               className="col-span-2 rounded border border-stone-200 px-2 py-1 text-sm"
             />
           </div>
@@ -93,6 +98,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
             value={form.summary}
             onChange={(e) => setForm({ ...form, summary: e.target.value })}
             placeholder="Professional summary"
+            aria-label="Professional summary"
             rows={3}
             className="w-full rounded border border-stone-200 px-2 py-1 text-sm"
           />
@@ -105,12 +111,14 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
                     value={l.label}
                     onChange={(e) => setLink(i, { label: e.target.value })}
                     placeholder="Label"
+                    aria-label="Link label"
                     className="w-32 rounded border border-stone-200 px-2 py-1 text-xs"
                   />
                   <input
                     value={l.url}
                     onChange={(e) => setLink(i, { url: e.target.value })}
                     placeholder="https://..."
+                    aria-label="Link URL"
                     className="flex-1 rounded border border-stone-200 px-2 py-1 text-xs"
                   />
                   <button
@@ -118,7 +126,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
                     onClick={() =>
                       setForm((f) => ({ ...f, links: f.links.filter((_, idx) => idx !== i) }))
                     }
-                    className="text-xs text-stone-400 hover:text-red-600"
+                    className="text-xs text-stone-400 hover:text-red-600 transition-colors"
                   >
                     remove
                   </button>
@@ -127,7 +135,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
               <button
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, links: [...f.links, { label: "", url: "" }] }))}
-                className="text-xs text-emerald-700 hover:underline"
+                className="text-xs text-emerald-700 hover:underline transition-colors"
               >
                 + Add link
               </button>
@@ -137,7 +145,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
             <button
               type="submit"
               disabled={busy}
-              className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >
               Save
             </button>
@@ -165,7 +173,7 @@ export default function ProfileSection({ profile }: { profile: Profile }) {
                   href={l.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-emerald-700 hover:underline"
+                  className="text-emerald-700 hover:underline transition-colors"
                 >
                   {l.label || l.url}
                 </a>

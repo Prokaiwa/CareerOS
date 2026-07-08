@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 
 export type Interview = {
   id: number;
@@ -62,7 +63,7 @@ function NewInterviewForm({ jobId }: { jobId: number }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+        className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
       >
         Add interview
       </button>
@@ -118,14 +119,14 @@ function NewInterviewForm({ jobId }: { jobId: number }) {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
           {submitting ? "Saving..." : "Add"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50"
+          className="rounded-md border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 transition-colors"
         >
           Cancel
         </button>
@@ -161,9 +162,12 @@ function InterviewRow({ interview }: { interview: Interview }) {
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this interview?")) return;
     const res = await fetch(`/api/interviews/${interview.id}`, { method: "DELETE" });
-    if (res.ok) router.refresh();
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Failed to delete interview");
+    }
+    router.refresh();
   }
 
   return (
@@ -179,12 +183,16 @@ function InterviewRow({ interview }: { interview: Interview }) {
           <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs capitalize text-stone-700">
             {interview.outcome}
           </span>
-          <button onClick={() => setEditing((v) => !v)} className="text-xs text-emerald-700 hover:underline">
+          <button onClick={() => setEditing((v) => !v)} className="text-xs text-emerald-700 hover:underline transition-colors">
             {editing ? "Close" : "Edit"}
           </button>
-          <button onClick={handleDelete} className="text-xs text-red-600 hover:underline">
-            Delete
-          </button>
+          <ConfirmButton
+            onConfirm={handleDelete}
+            prompt="Delete this interview?"
+            confirmLabel="Delete"
+            triggerLabel="Delete"
+            triggerClassName="text-xs text-red-600 transition-colors hover:underline"
+          />
         </div>
       </div>
       {interview.interviewers && <p className="mt-1 text-stone-600">With: {interview.interviewers}</p>}
@@ -226,7 +234,7 @@ function InterviewRow({ interview }: { interview: Interview }) {
           <button
             onClick={handleSave}
             disabled={submitting}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
             {submitting ? "Saving..." : "Save"}
           </button>

@@ -144,7 +144,7 @@ export default function SettingsPage() {
           <a
             href="/api/data/download"
             download
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
           >
             ↓ Download all my data
           </a>
