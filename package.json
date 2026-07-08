@@ -14,6 +14,7 @@
     "export": "tsx scripts/export.ts",
     "backup": "tsx scripts/backup.ts",
     "build:ext": "node extension/build.mjs",
+    "build:desktop-server": "node scripts/build-desktop-server.mjs",
     "selftest": "tsx scripts/selftest.ts"
   },
   "dependencies": {

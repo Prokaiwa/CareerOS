@@ -537,3 +537,59 @@ upload capability from this module, for free.
 **Consequences.** No live third-party login/scraping is ever added under
 this feature. Any future "auto-fill from X" source must go through the same
 propose → review → `commitImport` shape, not a direct write.
+
+## ADR-022 · Tauri v2 desktop shell with a Node-sidecar server
+
+**Decision.** CareerOS ships as a desktop application using Tauri v2. The
+shell does not reimplement anything: it bundles the platform Node runtime
+as a Tauri external binary (sidecar) plus the Next.js standalone server
+build, spawns `node server.js` bound to `127.0.0.1` on startup (port 3000,
+scanning upward if taken), waits for HTTP readiness, and opens a native
+webview pointed at that local URL. On exit the shell kills the sidecar
+(SQLite runs in WAL mode, so even an abrupt kill is crash-safe). New
+dependencies this introduces: `@tauri-apps/cli` (dev), the Rust crates
+`tauri`, `tauri-plugin-shell`, `tauri-plugin-dialog`,
+`tauri-plugin-window-state`, and the bundled Node binary itself
+(~50–120 MB — the honest cost of shipping a real Next.js server).
+
+**Context.** Desktop-first is a permanent rule (Principles §7, ADR-019)
+and the v1.x roadmap's packaging milestone. The app is a Next.js server
+with API routes and a native SQLite module — a webview alone can't run it.
+Alternatives considered: Node SEA single-binary (still can't cleanly embed
+native addons like better-sqlite3), `pkg` (archived), Bun compile (new
+runtime, real compatibility risk with Next standalone). Node-as-sidecar is
+the mainstream pattern for exactly this shape of app.
+
+**Rationale.** Everything the constitution promised stays true by
+construction: engines are untouched, the browser extension keeps talking
+to the same localhost HTTP API, and the web/dev/Codespaces flows continue
+working because the standalone build is gated behind `BUILD_STANDALONE`.
+The shell is a launcher, not a platform: Rust code lives only under
+`src-tauri/`, and the only web-side platform code is a small client-only
+adapter (`lib/platform/desktop.ts`) gated on Tauri's injected global.
+
+**Consequences.** No engine may import Tauri APIs — enforced by the same
+boundary rules as React/Next imports (Principles §7). Plugin IPC reaches
+the webview only through an explicit remote-URL capability granting the
+minimum (dialog open). Windows/macOS artifacts are produced by CI
+(documented in RELEASE_PROCESS.md), not hand-built.
+
+## ADR-023 · CAREEROS_DATA_DIR separates code location from data location
+
+**Decision.** `lib/config.ts` gains two env overrides: `CAREEROS_DATA_DIR`
+(the root for db/storage/backups — set by the desktop shell to the
+platform app-data directory; empty keeps today's project-directory
+behavior) and `CAREEROS_MIGRATIONS_DIR` (where the Drizzle `.sql` files
+live; empty derives from the app directory). The migration files travel
+inside the standalone server bundle via `outputFileTracingIncludes`.
+
+**Context.** Principles §7 promised "a desktop build repoints one value."
+In a packaged app the code lives in a read-only install location (AppImage
+squashfs, /usr/lib, Program Files) while user data must live in app-data —
+one `root` can no longer serve both. Migrations are code (read-only is
+fine — the journal lives in the DB); the database is data.
+
+**Consequences.** Everything still resolves through `config.paths`; no
+call site changed. Anything that writes must write under `root`
+(db/storage/backups); anything shipped must resolve from the app
+directory. New paths added to config must pick a side explicitly.

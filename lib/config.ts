@@ -10,6 +10,14 @@ import { z } from "zod";
 const envSchema = z.object({
   APP_NAME: z.string().default("CareerOS"),
   APP_URL: z.string().default("http://localhost:3000"),
+  /**
+   * Where all user data lives (db, storage, backups). The desktop shell
+   * sets this to the platform app-data directory; empty = the project
+   * directory, exactly as before (ADR-023).
+   */
+  CAREEROS_DATA_DIR: z.string().default(""),
+  /** Where the Drizzle migration .sql files live; empty = <app>/lib/db/migrations. */
+  CAREEROS_MIGRATIONS_DIR: z.string().default(""),
   DATABASE_URL: z.string().default("file:./data/careeros.db"),
   AI_PROVIDER: z
     .enum(["anthropic", "openai", "google", "openrouter", "ollama", "lmstudio"])
@@ -48,11 +56,17 @@ function aiEnabled(provider: AiProvider): boolean {
 
 /**
  * The single place CareerOS decides where it lives on disk. Everything that
- * touches the filesystem resolves through config.paths — when the app is
- * packaged as a desktop application, pointing `root` at the platform's
- * app-data directory relocates all user data in one change.
+ * touches the filesystem resolves through config.paths — the desktop shell
+ * relocates all user data by setting CAREEROS_DATA_DIR to the platform
+ * app-data directory (ADR-023); the dev/server flow keeps today's
+ * project-directory behavior with no env set.
+ *
+ * `appDir` is where the *code* lives (migrations travel with the build);
+ * `root` is where the *user's data* lives. They're the same directory in
+ * dev, different in a packaged desktop app.
  */
-const root = process.cwd();
+const appDir = process.cwd();
+const root = env.CAREEROS_DATA_DIR || appDir;
 const dbFile = env.DATABASE_URL.replace(/^file:/, "");
 
 export const config = {
@@ -69,8 +83,8 @@ export const config = {
     storage: path.resolve(root, env.STORAGE_PATH),
     /** Absolute path where backups are written. */
     backups: path.join(root, "backups"),
-    /** Absolute path of the Drizzle migrations folder. */
-    migrations: path.join(root, "lib/db/migrations"),
+    /** Absolute path of the Drizzle migrations folder (ships with the code, not the data). */
+    migrations: env.CAREEROS_MIGRATIONS_DIR || path.join(appDir, "lib/db/migrations"),
   },
   ai: {
     provider: env.AI_PROVIDER as AiProvider,
