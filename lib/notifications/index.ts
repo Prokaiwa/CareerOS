@@ -2,6 +2,7 @@ import { db, tables } from "@/lib/db";
 import { collectCalendarEvents, type CalendarEvent } from "@/lib/calendar";
 import { getPendingSuggestions } from "@/lib/suggestions";
 import { appliedJobsStats } from "@/lib/intelligence/context";
+import { getSetting } from "@/lib/settings";
 
 /**
  * Notification Engine: computes what deserves attention right now — never
@@ -65,6 +66,24 @@ export function computeNotifications(now = new Date()): AppNotification[] {
         href: `/jobs/${job.id}`,
       });
     }
+  }
+
+  /* backup reminder — written by createBackup() itself, so both the CLI
+     (npm run backup) and the Settings-page button count equally */
+  const BACKUP_REMINDER_DAYS = 30;
+  const lastBackupAt = getSetting("last_backup_at");
+  const daysSinceBackup = lastBackupAt
+    ? Math.floor((now.getTime() - new Date(lastBackupAt).getTime()) / DAY)
+    : null;
+  if (daysSinceBackup === null || daysSinceBackup >= BACKUP_REMINDER_DAYS) {
+    items.push({
+      key: `backup-reminder:${lastBackupAt ?? "never"}`,
+      severity: "info",
+      title: daysSinceBackup === null ? "No backup yet" : `Last backup was ${daysSinceBackup} days ago`,
+      detail: "A full backup only takes a moment.",
+      date: null,
+      href: "/settings",
+    });
   }
 
   /* open Brain questions */
