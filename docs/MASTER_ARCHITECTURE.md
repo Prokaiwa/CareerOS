@@ -176,9 +176,14 @@ deprecate in docs and stop writing.
 
 ## 7. Future integrations (designed, not built)
 
+Greenhouse/Lever/Ashby/Workday/LinkedIn field autofill has shipped
+(`extension/src/autofill.ts`, an `AutofillProvider` implementation — see
+ADR-018). Screening-question autofill (matching arbitrary free-text
+questions to page DOM) remains open; `ApplicationSession.rememberedAnswers`
+is surfaced read-only in the sidebar for now.
+
 | Integration | Mechanism | Status |
 |---|---|---|
-| Greenhouse/Lever/Ashby/Workday/LinkedIn autofill | `AutofillSitePlugin` + `SITE_PROFILES` + extension provider | profiles shipped; provider = extension v3 |
 | Gmail | `MessagingPlugin` (draft-only) + user's own OAuth creds | interface shipped |
 | Google/Apple/Outlook calendars | `CalendarProviderPlugin`; ICS export already works | ICS shipped |
 | Desktop notifications | `NotificationChannelPlugin` in the Tauri shell | interface shipped |

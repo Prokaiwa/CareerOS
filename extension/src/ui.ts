@@ -8,7 +8,9 @@
  */
 
 import type { AnalyzeResponse } from "../../lib/scoring/types";
+import type { ApplicationSession, CanonicalField, SiteProfile } from "../../lib/application/types";
 import type { DetectedJob } from "./detect";
+import { detectSite, fill } from "./autofill";
 
 export type SuggestionAnswers = {
   usedIt: boolean;
@@ -34,6 +36,10 @@ export type SidebarCallbacks = {
   onDismiss: (id: number) => Promise<boolean>;
   /** Collapsed state toggled — persist it. */
   onCollapsedChange: (collapsed: boolean) => void;
+  /** "Prepare application" clicked. Fetches the session + site profiles. */
+  loadApplicationSession: () => Promise<{ session: ApplicationSession; siteProfiles: SiteProfile[] } | null>;
+  /** "Mark as Applied" clicked. Resolve true on success. */
+  markApplied: (jobId: number) => Promise<boolean>;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -316,6 +322,10 @@ export class Sidebar {
   private state: SidebarState | null = null;
   /** skillName -> expanded/answers UI state survives re-renders within a job. */
   private openSkill: string | null = null;
+  private applicationData: { session: ApplicationSession; siteProfiles: SiteProfile[] } | null = null;
+  private applicationLoading = false;
+  private autofillResult: CanonicalField[] | null = null;
+  private markAppliedDone = false;
 
   constructor(doc: Document, callbacks: SidebarCallbacks, collapsed: boolean) {
     this.doc = doc;
@@ -369,7 +379,13 @@ export class Sidebar {
   render(state: SidebarState): void {
     const prevJobUrl = this.state?.job.url;
     this.state = state;
-    if (state.job.url !== prevJobUrl) this.openSkill = null;
+    if (state.job.url !== prevJobUrl) {
+      this.openSkill = null;
+      this.applicationData = null;
+      this.applicationLoading = false;
+      this.autofillResult = null;
+      this.markAppliedDone = false;
+    }
 
     this.pillLabel.textContent =
       state.kind === "ready"
@@ -482,7 +498,9 @@ export class Sidebar {
     body.append(this.buildScores(data));
     if (data.report.strengths.length > 0) body.append(this.buildStrengths(data));
     if (data.report.missingSkills.length > 0) body.append(this.buildMissingSkills(data));
-    body.append(this.buildReasoning(data), this.buildActions(data), this.buildFooter(data));
+    body.append(this.buildReasoning(data), this.buildActions(data));
+    if (data.existingJob) body.append(this.buildApply(data));
+    body.append(this.buildFooter(data));
     return body;
   }
 
@@ -813,6 +831,110 @@ export class Sidebar {
     link.style.textAlign = "center";
     link.style.textDecoration = "none";
     return link;
+  }
+
+  /* -------------------------- apply ------------------------------ */
+
+  private buildApply(data: AnalyzeResponse): HTMLElement {
+    const d = this.doc;
+    const section = el(d, "div", "section");
+    section.append(el(d, "div", "section-title", "Apply"));
+
+    if (!this.applicationData) {
+      const btn = el(d, "button", "btn primary", this.applicationLoading ? "Loading…" : "Prepare application");
+      btn.type = "button";
+      btn.disabled = this.applicationLoading;
+      btn.addEventListener("click", async () => {
+        this.applicationLoading = true;
+        if (this.state) this.render(this.state);
+        this.applicationData = await this.callbacks.loadApplicationSession();
+        this.applicationLoading = false;
+        if (this.state) this.render(this.state);
+      });
+      section.append(btn);
+      return section;
+    }
+
+    const { session, siteProfiles } = this.applicationData;
+    const existingJob = data.existingJob!;
+
+    for (const item of session.validation) {
+      if (item.level === "ok") continue;
+      const card = el(d, "div", `card${item.level === "warn" ? " muted" : ""}`);
+      card.append(el(d, "span", undefined, item.message));
+      section.append(card);
+    }
+    const blocked = session.validation.some((v) => v.level === "block");
+
+    const autofillBtn = el(d, "button", "btn primary", "Autofill this application");
+    autofillBtn.type = "button";
+    autofillBtn.disabled = blocked;
+    autofillBtn.addEventListener("click", async () => {
+      const profile = detectSite(this.state!.job.url, siteProfiles);
+      this.autofillResult = await fill(session, profile, this.doc);
+      if (this.state) this.render(this.state);
+    });
+    section.append(autofillBtn);
+
+    if (this.autofillResult) {
+      const total = session.fieldMap.filter((f) => f.value.trim()).length;
+      section.append(
+        el(d, "div", "qa-status ok", `Filled ${this.autofillResult.length} of ${total} fields — review before submitting.`),
+      );
+    }
+
+    if (session.resume || session.coverLetter) {
+      const attach = el(d, "div", "card muted");
+      attach.append(el(d, "b", undefined, "Attach manually"));
+      if (session.resume) {
+        const link = el(d, "a", undefined, "Résumé file ↗");
+        (link as HTMLAnchorElement).href = `${data.appUrl}${session.resume.filePath}`;
+        (link as HTMLAnchorElement).target = "_blank";
+        (link as HTMLAnchorElement).rel = "noopener";
+        link.style.display = "block";
+        attach.append(link);
+      }
+      if (session.coverLetter) {
+        const link = el(d, "a", undefined, "Cover letter file ↗");
+        (link as HTMLAnchorElement).href = `${data.appUrl}${session.coverLetter.filePath}`;
+        (link as HTMLAnchorElement).target = "_blank";
+        (link as HTMLAnchorElement).rel = "noopener";
+        link.style.display = "block";
+        attach.append(link);
+      }
+      section.append(attach);
+    }
+
+    if (session.rememberedAnswers.length > 0) {
+      const remembered = el(d, "details", "reasoning");
+      remembered.append(el(d, "summary", undefined, "Answers you've used before"));
+      for (const r of session.rememberedAnswers) {
+        const reason = el(d, "div", "reason");
+        reason.append(el(d, "b", undefined, r.question), d.createTextNode(r.answer));
+        remembered.append(reason);
+      }
+      section.append(remembered);
+    }
+
+    if (existingJob.status === "saved") {
+      const markBtn = el(d, "button", "btn", this.markAppliedDone ? "Marked as applied ✓" : "Mark as Applied");
+      markBtn.type = "button";
+      markBtn.disabled = this.markAppliedDone;
+      markBtn.addEventListener("click", async () => {
+        markBtn.disabled = true;
+        markBtn.textContent = "Marking…";
+        const ok = await this.callbacks.markApplied(existingJob.id);
+        if (ok) {
+          this.markAppliedDone = true;
+        } else {
+          markBtn.disabled = false;
+          markBtn.textContent = "Mark as Applied (failed — retry)";
+        }
+      });
+      section.append(markBtn);
+    }
+
+    return section;
   }
 
   private buildFooter(data: AnalyzeResponse): HTMLElement {

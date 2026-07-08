@@ -206,18 +206,20 @@ Future work must follow these unless a revision is recorded in the decision log:
 ## Roadmap
 
 ### Near-term (v0.3)
-- [ ] Extension: application form auto-fill from the Career Brain; application memory (capture submitted screening answers for reuse).
-- [ ] Job stage funnel and time-in-stage analytics dashboard.
+- [x] Extension: application form auto-fill from the Career Brain; application memory (capture submitted screening answers for reuse).
+- [x] Job stage funnel and time-in-stage analytics dashboard.
+- [x] Résumé/cover-letter import: paste or upload text, review an AI-proposed extraction, confirm into the Career Brain.
+- [x] In-app AI provider setup (Settings) and a one-click full-data download — no `.env` editing, no terminal.
 
 ### Medium-term
-- [ ] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization (built on the intelligence layer).
+- [x] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization (built on the intelligence layer).
 - [ ] **Onboarding interview:** guided Career Brain population using the suggestions + intelligence infrastructure.
 - [ ] **Gmail integration** (optional): Archive job-related emails to your job records.
 
 ### Long-term (v1.0)
-- [ ] Analytics dashboard: application velocity, conversion funnel by source, time-in-stage by role type.
+- [x] Analytics dashboard: application velocity, conversion funnel by source, time-in-stage.
 - [ ] Salary negotiation assistant (grounded in your market data and profile).
-- [ ] Skill gap analysis: compare your skills vs. target roles and suggest growth areas.
+- [x] Skill gap analysis: compare your skills vs. target roles and suggest growth areas.
 
 ## Stack
 

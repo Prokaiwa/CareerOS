@@ -8,6 +8,7 @@
 import { detectJob, type DetectedJob } from "./detect";
 import { Sidebar, type SuggestionAnswers } from "./ui";
 import type { AnalyzeResponse } from "../../lib/scoring/types";
+import type { ApplicationSession, SiteProfile } from "../../lib/application/types";
 
 const DEFAULT_API_URL = "http://localhost:3000";
 
@@ -129,6 +130,37 @@ function makeSidebar(job: DetectedJob): Sidebar {
       onCollapsedChange: (value: boolean) => {
         collapsed = value;
         void chrome.storage.local.set({ sidebarCollapsed: value });
+      },
+      loadApplicationSession: async () => {
+        if (!currentJob) return null;
+        try {
+          const res = await api("/api/extension/application", {
+            method: "POST",
+            body: JSON.stringify({
+              url: currentJob.url || undefined,
+              companyName: currentJob.companyName || undefined,
+              title: currentJob.title || undefined,
+            }),
+          });
+          if (!res.ok) return null;
+          const data = (await res.json()) as { session: ApplicationSession; siteProfiles: SiteProfile[] };
+          return data;
+        } catch {
+          return null;
+        }
+      },
+      markApplied: async (jobId: number) => {
+        try {
+          const res = await api("/api/extension/application", {
+            method: "PUT",
+            body: JSON.stringify({ jobId, answers: [] }),
+          });
+          if (!res.ok) return false;
+          if (currentJob) await analyze(currentJob);
+          return true;
+        } catch {
+          return false;
+        }
       },
     },
     collapsed,

@@ -385,6 +385,52 @@ involved in producing it. This mirrors `resolveSuggestion` in
 `lib/suggestions.ts`, which was already the precedent for "AI proposes,
 human confirms, deterministic code writes."
 
+## ADR-018 · Extension autofill is assistive-only and scope-bounded
+
+**Decision.** `extension/src/autofill.ts` implements the `AutofillProvider`
+contract already defined in `lib/application/types.ts`: it fills form
+fields from the Career Brain's `FieldMap` (via a `SiteProfile`'s CSS
+selectors first, then generic label/aria-label/placeholder/name/autocomplete
+alias matching) but never calls `.submit()` or clicks a submit button, and
+never touches `<input type="file">` — resume/cover-letter attachment stays
+a manual step, surfaced as direct file links in the sidebar. Values are set
+via the native `HTMLInputElement`/`HTMLTextAreaElement`/`HTMLSelectElement`
+property setter followed by dispatched `input`/`change` events, because
+Greenhouse, Lever, Ashby, and Workday are all React-controlled forms that
+silently revert a plain `el.value = x` assignment. Screening-question
+memory (`ApplicationSession.rememberedAnswers`) is rendered as a read-only,
+copyable list — it is not auto-inserted into arbitrary page text areas.
+
+**Context.** The Application Engine (field mapping, question memory,
+duplicate detection, validation, checklist, session assembly, submission
+recording) was already built and tested in an earlier session, but the
+extension itself never called it and had no DOM-filling code. A gap audit
+against the README roadmap and `docs/MASTER_ARCHITECTURE.md` §7 surfaced
+this as the highest-value remaining item — the backend was done, only the
+extension-side wiring was missing. `extension/manifest.json` was also
+missing `content_scripts`/`host_permissions` entries for
+`boards.greenhouse.io`, `job-boards.greenhouse.io`, `jobs.lever.co`, and
+`jobs.ashbyhq.com` despite `SITE_PROFILES` already shipping selector hints
+for greenhouse and lever — the sidebar could not load on those hosts at
+all before this change.
+
+**Rationale.** Reliably matching arbitrary free-text screening questions
+("Why do you want to work here?") to the right DOM element per ATS is a
+much harder, more fragile problem than filling well-known contact/profile
+fields — attempting it now would trade a small number of genuinely useful
+autofills for a larger number of confidently-wrong ones. Keeping it to a
+read-only "answers you've used before" list is honest about what this pass
+actually does, and is a natural, separately-scoped follow-up. The
+never-submit / never-touch-file-inputs rules are permanent: submission and
+attaching a résumé are human acts, matching the contract's own comment in
+`lib/application/types.ts`.
+
+**Consequences.** Any future work on screening-question autofill must ship
+as its own reviewed increment, not be silently folded into field-mapping
+changes. New `SiteProfile` entries (additional ATSes) only need
+`hostPatterns` + optional `fieldSelectors` — no changes to `autofill.ts`
+itself.
+
 **Consequences.** No live third-party login/scraping is ever added under
 this feature. Any future "auto-fill from X" source must go through the same
 propose → review → `commitImport` shape, not a direct write.
