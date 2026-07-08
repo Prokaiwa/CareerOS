@@ -1,0 +1,220 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ImportWizard } from "@/components/import/ImportWizard";
+import type { BrainCompleteness } from "@/lib/onboarding";
+
+type Step = "welcome" | "resume" | "cover-letter" | "certifications" | "portfolio" | "complete";
+
+const DOCUMENT_STEPS: Array<{ step: Step; next: Step; title: string; hint: string }> = [
+  {
+    step: "resume",
+    next: "cover-letter",
+    title: "Your résumé",
+    hint: "Paste your résumé text, or upload a .txt/.md/.pdf/.docx file.",
+  },
+  {
+    step: "cover-letter",
+    next: "certifications",
+    title: "A cover letter",
+    hint: "Paste a cover letter you've used before, if you have one.",
+  },
+  {
+    step: "certifications",
+    next: "portfolio",
+    title: "Certifications",
+    hint: "Paste or upload anything listing your certifications.",
+  },
+  {
+    step: "portfolio",
+    next: "complete",
+    title: "Portfolio projects",
+    hint: "Describe your side projects or portfolio work — paste text or upload a file.",
+  },
+];
+
+export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("welcome");
+  const [restoreMode, setRestoreMode] = useState(false);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restored, setRestored] = useState<{ restoredTables: number; restoredRows: number } | null>(null);
+  const [completeness, setCompleteness] = useState<BrainCompleteness | null>(null);
+
+  async function finish(action: "complete" | "skip") {
+    await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    router.push("/");
+    router.refresh();
+  }
+
+  async function goToCompletion() {
+    const res = await fetch("/api/onboarding");
+    const data = await res.json();
+    setCompleteness(data.completeness);
+    setStep("complete");
+  }
+
+  async function onRestoreFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setRestoreBusy(true);
+    setRestoreError(null);
+    try {
+      const text = await file.text();
+      let payload: unknown;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        setRestoreError("That doesn't look like a valid CareerOS export (invalid JSON).");
+        return;
+      }
+      const res = await fetch("/api/onboarding/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRestoreError(data.error ?? "Restore failed.");
+        return;
+      }
+      setRestored(data);
+      await goToCompletion();
+    } finally {
+      setRestoreBusy(false);
+    }
+  }
+
+  if (step === "welcome") {
+    return (
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <h1 className="text-2xl font-bold">
+          Welcome to Career<span className="text-emerald-600">OS</span>
+        </h1>
+        <p className="mt-3 text-sm text-stone-600">
+          Let&apos;s build your Career Brain — the canonical source everything else here draws
+          from. Upload what you already have, or skip straight to the dashboard and fill it in
+          yourself later.
+        </p>
+
+        {!restoreMode ? (
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <button
+              onClick={() => setStep("resume")}
+              className="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              Get started
+            </button>
+            <button
+              onClick={() => setRestoreMode(true)}
+              className="text-sm text-emerald-700 underline hover:no-underline"
+            >
+              I have an existing CareerOS export
+            </button>
+            <button
+              onClick={() => finish("skip")}
+              className="text-sm text-stone-500 hover:text-stone-700"
+            >
+              Skip setup, I&apos;ll fill it in myself
+            </button>
+          </div>
+        ) : (
+          <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-left">
+            <h2 className="text-sm font-semibold">Restore from an export</h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Only works on a brand-new database — if you already have any data here, this will
+              refuse rather than merge or overwrite it.
+            </p>
+            <label className="mt-3 inline-block cursor-pointer rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
+              {restoreBusy ? "Restoring…" : "Choose export file (.json)"}
+              <input type="file" accept=".json,application/json" onChange={onRestoreFile} disabled={restoreBusy} className="hidden" />
+            </label>
+            {restoreError && <p className="mt-2 text-xs text-red-600">{restoreError}</p>}
+            <div className="mt-3">
+              <button onClick={() => setRestoreMode(false)} className="text-xs text-stone-500 hover:text-stone-700">
+                ← Back
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const doc = DOCUMENT_STEPS.find((d) => d.step === step);
+  if (doc) {
+    return (
+      <div className="mx-auto max-w-2xl py-10">
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+          Step {DOCUMENT_STEPS.findIndex((d) => d.step === step) + 1} of {DOCUMENT_STEPS.length}
+        </p>
+        <h1 className="mt-1 text-xl font-bold">{doc.title}</h1>
+        <p className="mt-1 text-sm text-stone-500">{doc.hint}</p>
+
+        <ImportWizard aiEnabled={aiEnabled} />
+
+        <div className="mt-6 border-t border-stone-200 pt-4">
+          <button
+            onClick={() => (doc.next === "complete" ? goToCompletion() : setStep(doc.next))}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            Continue
+          </button>
+          <span className="ml-3 text-xs text-stone-400">Nothing to add? Just continue — every step is optional.</span>
+        </div>
+      </div>
+    );
+  }
+
+  // step === "complete"
+  return (
+    <div className="mx-auto max-w-lg py-16">
+      <h1 className="text-2xl font-bold">
+        {restored ? "Restored!" : "You're set up"}
+      </h1>
+      {restored && (
+        <p className="mt-2 text-sm text-stone-600">
+          Restored {restored.restoredRows} row(s) across {restored.restoredTables} table(s).
+        </p>
+      )}
+      {completeness && (
+        <div className="mt-6 rounded-lg border border-stone-200 bg-white p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold">Career Brain completeness</span>
+            <span className="text-lg font-bold text-emerald-700">{completeness.percent}%</span>
+          </div>
+          {completeness.missingSections.length > 0 ? (
+            <>
+              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-stone-400">Still missing</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-stone-600">
+                {completeness.missingSections.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-stone-400">Recommended next steps</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-stone-600">
+                {completeness.nextSteps.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-emerald-700">Your Career Brain covers all the basics.</p>
+          )}
+        </div>
+      )}
+      <button
+        onClick={() => finish("complete")}
+        className="mt-6 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+      >
+        Go to Dashboard
+      </button>
+    </div>
+  );
+}

@@ -34,8 +34,28 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const content = await file.text();
-    setText((prev) => (prev.trim() ? `${prev}\n\n${content}` : content));
+    setError(null);
+    const isTextLike = /\.(txt|md)$/i.test(file.name) || file.type.startsWith("text/");
+    try {
+      let content: string;
+      if (isTextLike) {
+        content = await file.text();
+      } else {
+        setBusy(true);
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/import/parse-file", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Couldn't read that file.");
+          return;
+        }
+        content = data.text;
+      }
+      setText((prev) => (prev.trim() ? `${prev}\n\n${content}` : content));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function extract() {
@@ -294,8 +314,14 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
       />
       <div className="flex items-center gap-3">
         <label className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 cursor-pointer">
-          Upload .txt / .md
-          <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={onFile} className="hidden" />
+          {busy ? "Reading file…" : "Upload .txt / .md / .pdf / .docx"}
+          <input
+            type="file"
+            accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={onFile}
+            disabled={busy}
+            className="hidden"
+          />
         </label>
         <button
           onClick={extract}
@@ -306,7 +332,7 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
         </button>
       </div>
       <p className="text-xs text-stone-500">
-        PDFs and Word docs aren&apos;t parsed here — open the file, copy the text, and paste it above.
+        Old .doc files and images aren&apos;t parsed — open the file, copy the text, and paste it above.
       </p>
     </div>
   );

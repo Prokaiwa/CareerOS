@@ -51,3 +51,15 @@ export function runWithForeignKeysOff<T>(fn: () => T): T {
     sqlite.pragma("foreign_keys = ON");
   }
 }
+
+/** Raw `PRAGMA foreign_key_check` — one row per broken reference, empty when clean. */
+export function checkForeignKeys(): Array<{ table: string; rowid: number | null; parent: string; fkid: number }> {
+  const sqlite = globalThis.__careerosSqlite;
+  if (!sqlite) throw new Error("Database not initialized");
+  return sqlite.pragma("foreign_key_check") as Array<{
+    table: string;
+    rowid: number | null;
+    parent: string;
+    fkid: number;
+  }>;
+}

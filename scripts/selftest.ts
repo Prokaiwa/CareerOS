@@ -31,6 +31,7 @@ import { buildCompanyDossier } from "../lib/company";
 import { buildAnalyticsReport } from "../lib/analytics";
 import { collectCalendarEvents, toIcs } from "../lib/calendar";
 import { computeNotifications } from "../lib/notifications";
+import { computeBrainCompleteness, isOnboardingNeeded, restoreFromExport, DatabaseNotEmptyError } from "../lib/onboarding";
 
 let failures = 0;
 let passed = 0;
@@ -152,6 +153,31 @@ section("Calendar + notifications");
   check("ICS deterministic", toIcs(events) === ics);
   const notifications = computeNotifications();
   check("notifications have stable keys", notifications.every((n) => n.key.length > 0));
+}
+
+section("Onboarding");
+{
+  const c1 = computeBrainCompleteness();
+  const c2 = computeBrainCompleteness();
+  check("brain completeness percent in range", c1.percent >= 0 && c1.percent <= 100);
+  check("brain completeness deterministic", deepEqual(c1, c2));
+  check(
+    "missing sections and next steps line up",
+    c1.missingSections.length === c1.nextSteps.length,
+  );
+  // isOnboardingNeeded requires an empty Brain; this DB has seed/test data
+  // in it by the time selftest runs, so the only thing safe to assert
+  // without special-casing DB state is that it returns a boolean at all.
+  check("isOnboardingNeeded returns a boolean", typeof isOnboardingNeeded() === "boolean");
+  // restoreFromExport must hard-refuse on any non-empty database — this
+  // ambient DB always has data in it by the time selftest runs, so this
+  // exercises the guard directly without needing a scratch database.
+  try {
+    restoreFromExport({ tables: {} });
+    check("restoreFromExport refuses a non-empty database", false, "did not throw");
+  } catch (err) {
+    check("restoreFromExport refuses a non-empty database", err instanceof DatabaseNotEmptyError);
+  }
 }
 
 console.log(`\n${passed} passed, ${failures} failed`);

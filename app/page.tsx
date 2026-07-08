@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { count, eq, isNotNull } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db, tables } from "@/lib/db";
 import { getPendingSuggestions } from "@/lib/suggestions";
 import SuggestionsPanel from "@/components/suggestions/SuggestionsPanel";
 import { generateWeeklyReview } from "@/lib/intelligence";
+import { isOnboardingNeeded } from "@/lib/onboarding";
 import { desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +16,8 @@ function countOf(table: SQLiteTable) {
 }
 
 export default function Dashboard() {
+  if (isOnboardingNeeded()) redirect("/onboarding");
+
   // Deterministic only — the dashboard never triggers AI calls on render.
   const review = generateWeeklyReview();
   const lastCoachMessage = db
