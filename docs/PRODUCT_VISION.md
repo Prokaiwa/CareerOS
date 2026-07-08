@@ -54,6 +54,18 @@ Calm, polished, and extremely easy to use. Concretely:
   honest empty states. The bar: a user *wants* to open it daily, the way
   Linear or Raycast users do.
 
+## Versioning philosophy
+
+CareerOS ships in versions, not a running feature list. A feature earns its
+place in the *current* version only if it clears the four-question test in
+[ENGINEERING_PRINCIPLES.md](./ENGINEERING_PRINCIPLES.md) §10: does it help
+someone on their first day, does it help the everyday workflow, does it
+help whoever maintains this next, and is now the right time? Passing the
+first three but not the fourth means it belongs on the roadmap, not in the
+build — restraint about *when* is as much a part of the product as any
+feature is. The full version scope lives in
+[IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)'s Version Roadmap.
+
 ## Future vision
 
 Vision items, not promises. Each must honor the

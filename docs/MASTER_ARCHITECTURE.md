@@ -151,8 +151,8 @@ Brain ──identity───► FieldMap ──autofill──► applications; 
 Brain ──deltas─────► weekly review, analytics goal progress
 ```
 
-Every feature either improves the Brain (suggestions, onboarding-to-be) or
-uses it (everything else). Features that would do neither are
+Every feature either improves the Brain (suggestions, onboarding's import
+flow) or uses it (everything else). Features that would do neither are
 off-architecture by constitutional rule.
 
 ## 6. Data layer

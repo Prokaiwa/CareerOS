@@ -25,7 +25,9 @@ tables (`lib/db/schema.ts`, section 1). Everything else **derives** from it:
 Corollaries:
 
 - New career information enters the Brain through explicit user input — the
-  Career Brain editor or the suggestions flow — never as a side effect.
+  Career Brain editor, the suggestions flow, or the onboarding import flow
+  (itself the same reviewed propose → confirm → `commitImport()` path as the
+  standalone Import feature) — never as a side effect.
 - Improvements discovered while tailoring an artifact (e.g. a better-worded
   bullet) are promoted **back into the Brain**, not stranded in the artifact.
 - A derived artifact must record *what* it derived (see `ResumeContent`:
@@ -99,21 +101,30 @@ Scoring, selection, and composition are deterministic: same Brain + same job
 guaranteed fallback. New intelligence features follow the same shape:
 deterministic baseline first, optional AI refinement second.
 
-## 7. Desktop-first future (permanent rule)
+## 7. Desktop-first distribution (permanent rule)
 
 CareerOS will eventually ship as a desktop application (Tauri or equivalent)
-for non-technical users. Every change must keep that path cheap:
+for non-technical users. **No production feature may require command-line
+interaction** — every change must keep the desktop path cheap:
 
 - **No CLI requirements outside development.** Any capability a user needs
-  (backup, export, token setup, migrations) must exist — or be trivially
-  exposable — through the UI/API. Dev scripts may wrap those code paths, but
-  the logic lives in `lib/`, not in the script.
-- **Platform/filesystem decisions are isolated.** Every path on disk resolves
-  through `config.paths` (`lib/config.ts`). A desktop build repoints one
-  value (the root) at the platform app-data directory.
+  (backup, export, token setup, migrations, diagnostics) must exist — or be
+  trivially exposable — through the UI/API. Dev scripts may wrap those code
+  paths, but the logic lives in `lib/`, not in the script. Concretely, the
+  following must all stay adapter-compatible and UI-reachable: **export,
+  backup, notifications, AI providers, browser-extension communication,
+  calendar providers, and future OS integrations.**
+- **Platform-specific logic is isolated behind adapters.** Every path on disk
+  resolves through `config.paths` (`lib/config.ts`) — a desktop build
+  repoints one value (the root) at the platform app-data directory.
+  Capability-specific behavior (notification delivery, calendar sync,
+  messaging) is defined once as an interface in `lib/plugins/types.ts` and
+  implemented per platform; engines call the interface, never a concrete
+  platform API directly.
 - **Business logic is UI-independent.** Engines take data in, return data
-  out; they don't import React, Next, or anything request-scoped. The web UI
-  is one consumer; a desktop shell will be another.
+  out; they don't import React, Next, browser globals (`window`, `document`,
+  `localStorage`), or anything request-scoped. The web UI is one consumer; a
+  desktop shell will be another.
 - **Avoid web-server-only assumptions.** Prefer capabilities that work in an
   embedded/localhost context; anything that assumes a public origin, external
   DNS, or multi-user semantics is off-architecture.
@@ -135,3 +146,32 @@ for non-technical users. Every change must keep that path cheap:
 - Commit per coherent milestone with messages that describe behavior.
 - Document major decisions in [DECISION_LOG.md](./DECISION_LOG.md) as they
   are made. Roadmap ideas go to the README/vision doc, not into code.
+
+## 10. Version-first development (permanent rule)
+
+CareerOS is planned in semantic versions (v1.0, v1.1, v1.2, ...), not
+isolated feature milestones. A milestone describes *how* a wave of work is
+sequenced; a version describes *what a user actually receives* — the two
+are not the same, and roadmap documents must speak in versions.
+
+Before proposing or accepting a feature, answer all four questions:
+
+1. Does it improve the **first-time experience** (a new user with an empty
+   Career Brain)?
+2. Does it improve the **everyday workflow** (a returning user tracking
+   applications)?
+3. Does it improve **long-term maintainability** (a future contributor,
+   human or AI, extending the system)?
+4. Is it **appropriate for the current version**, or should it wait for a
+   later one?
+
+A feature that fails to improve any of the first three is a candidate for
+cutting, not building. A feature that passes 1–3 but fails 4 goes on the
+roadmap for a later version instead of being built now — scope creep into
+the current version is exactly the failure mode this rule exists to catch.
+
+The intended scope of each version — v1.0 through the long-term roadmap —
+is maintained in [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)'s
+**Version Roadmap** section, kept current as versions ship (mirrored briefly
+in `README.md` for users). A version is "done" when its roadmap section's
+items are shipped and verified, not when an arbitrary time passes.

@@ -431,6 +431,109 @@ changes. New `SiteProfile` entries (additional ATSes) only need
 `hostPatterns` + optional `fieldSelectors` — no changes to `autofill.ts`
 itself.
 
+## ADR-019 · Version-first development and desktop-first distribution become explicit permanent rules
+
+**Decision.** Two additions to `docs/ENGINEERING_PRINCIPLES.md`: (1)
+**version-first development** (§10) — CareerOS is planned in semantic
+versions (v1.0, v1.1, v1.2, ...) with every feature answering four
+questions (first-time experience? everyday workflow? long-term
+maintainability? right for the current version or later?), and the
+authoritative version scope lives in `IMPLEMENTATION_GUIDE.md`'s Version
+Roadmap. (2) **desktop-first distribution** (§7, strengthened) — the
+existing "desktop-first future" rule now states explicitly that no
+production feature may require command-line interaction, and enumerates the
+systems that must stay adapter-compatible: export, backup, notifications,
+AI providers, browser-extension communication, calendar providers, and
+future OS integrations.
+
+**Context.** CareerOS had been developed milestone-by-milestone (M1
+through M8, then ad hoc feature requests) without a versioning discipline,
+and §7's desktop-first rule already existed but didn't explicitly forbid
+CLI-only production capabilities — which had already happened in practice
+(full backup was CLI-only; see ADR referenced in Wave 1 of this push). The
+user asked for both rules to be recorded permanently before any further
+feature work, ahead of a "Version 1.0" implementation push.
+
+**Rationale.** Milestone-based planning describes how work is sequenced;
+it doesn't answer whether a feature belongs in what a user receives *now*
+versus later — that ambiguity is exactly how scope creep happens. Naming
+versions forces the question explicitly. The desktop-first strengthening
+codifies a gap the project had already drifted into (CLI-only backup)
+rather than inventing a new constraint — it makes the existing principle
+enforceable by being unambiguous about what "no CLI requirement" covers.
+
+**Consequences.** Every future roadmap discussion must place a feature in
+a named version, not just "eventually." Any capability shipped without a
+UI/API path (CLI-only) is now a documented violation, not a judgment call.
+
+## ADR-020 · Onboarding is a document-upload/import wizard, not a Suggestions-engine interview
+
+**Decision.** The first-run onboarding wizard (`/onboarding`,
+`lib/onboarding/`) builds the Career Brain from uploaded documents (résumés,
+cover letters, certifications, portfolio descriptions) and restored
+CareerOS exports — reusing the exact extract → review-checkboxes →
+`commitImport()` pipeline built for the standalone Import feature (ADR-017)
+— rather than a conversational Q&A interview built on `brain_suggestions`.
+
+**Context.** `docs/MASTER_ARCHITECTURE.md`, `docs/ARCHITECTURE.md`,
+`docs/IMPLEMENTATION_GUIDE.md`, and `README.md` all previously described
+*planned* onboarding as "guided Brain population reusing the Suggestion
+Engine's Q&A components" for users with nothing to paste yet. The user's
+explicit Version 1.0 spec instead described an upload wizard (résumé,
+cover letter, certifications, portfolio, import an existing export, skip
+any step) — a different, and for this version cheaper, mechanism. This ADR
+records that supersession explicitly rather than let four documents quietly
+disagree with what actually got built.
+
+**Rationale.** `lib/import/` already implements exactly the "AI proposes,
+human confirms, deterministic code writes" shape onboarding needs — the
+checkbox-review step satisfies the spirit of "unknown information becomes
+a suggestion, not a direct write" without requiring `brain_suggestions` (
+skill-only today) to first be generalized to arbitrary types, which is real
+schema and logic work with no urgent need. Reusing a complete, tested
+pipeline is the version-appropriate choice; generalizing the Suggestion
+Engine is deferred to v1.1, where it can also serve a second onboarding
+path for users with zero documents to upload (the original idea these docs
+described — not abandoned, just resequenced).
+
+**Consequences.** `docs/MASTER_ARCHITECTURE.md`, `docs/ARCHITECTURE.md`,
+`docs/IMPLEMENTATION_GUIDE.md`, and `README.md` are updated to describe
+what v1.0 actually built, with the Q&A-interview idea moved to the v1.1
+roadmap entry rather than deleted. Any future work generalizing
+`brain_suggestions.type` must reference this ADR.
+
+## ADR-021 · New dependencies: `pdf-parse` and `mammoth` for onboarding file-text extraction
+
+**Decision.** Add two runtime dependencies — `pdf-parse` (PDF → text) and
+`mammoth` (DOCX → text) — behind a single new module,
+`lib/import/fileText.ts`, so onboarding's résumé/cover-letter/certification/
+portfolio uploads can accept real `.pdf`/`.docx` files, not just pasted
+text or `.txt`/`.md`.
+
+**Context.** The standalone Import feature (ADR-017) and the original
+onboarding design both assumed pasted text only, matching the "zero new
+dependencies" default. Given the choice between staying text-only or adding
+real binary parsing, the user explicitly chose real PDF/DOCX parsing for
+Version 1.0, which requires at least one new dependency under the "no new
+deps without a DECISION_LOG entry" rule (ADR-006).
+
+**Rationale.** Both packages are pure JavaScript (no native compilation
+step, so nothing to rebuild per platform — relevant to the desktop-first
+rule in ADR-019), single-purpose, and widely used for exactly this
+extraction task. They sit behind one narrow module
+(`extractTextFromFile(buffer, filename, mimeType)`) that the rest of the
+import/onboarding pipeline calls without knowing which library handled a
+given file — keeping the "small, auditable tree" principle (ADR-006) intact
+by containing the new surface area to one file. Extracted text feeds the
+*existing* `extractBrainFromText()`/`commitImport()` pipeline unchanged;
+nothing about AI extraction or Brain-writing logic changes.
+
+**Consequences.** `lib/import/fileText.ts` is the only place these two
+packages are imported. Unsupported formats (`.doc`, images) return a clear
+error asking the user to paste text instead, rather than silently failing.
+The standalone `/import` page's `ImportWizard` gains the same real-file
+upload capability from this module, for free.
+
 **Consequences.** No live third-party login/scraping is ever added under
 this feature. Any future "auto-fill from X" source must go through the same
 propose → review → `commitImport` shape, not a direct write.

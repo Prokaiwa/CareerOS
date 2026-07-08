@@ -205,21 +205,40 @@ Future work must follow these unless a revision is recorded in the decision log:
 
 ## Roadmap
 
-### Near-term (v0.3)
-- [x] Extension: application form auto-fill from the Career Brain; application memory (capture submitted screening answers for reuse).
+CareerOS is planned in versions, not isolated milestones — every feature
+answers: does it improve the first-time experience, the everyday workflow,
+long-term maintainability, and is it appropriate for the current version?
+(See `docs/ENGINEERING_PRINCIPLES.md` §10 for the full rule; the
+authoritative scope lives in `docs/IMPLEMENTATION_GUIDE.md`'s Version
+Roadmap — this is a shorter mirror of it.)
+
+### Version 1.0 — a polished, downloadable-feeling product
+- [x] Extension: application form auto-fill from the Career Brain.
 - [x] Job stage funnel and time-in-stage analytics dashboard.
-- [x] Résumé/cover-letter import: paste or upload text, review an AI-proposed extraction, confirm into the Career Brain.
+- [x] Résumé/cover-letter import: paste, upload text, or (new) upload a real `.pdf`/`.docx` file — review an AI-proposed extraction, confirm into the Career Brain.
 - [x] In-app AI provider setup (Settings) and a one-click full-data download — no `.env` editing, no terminal.
-
-### Medium-term
-- [x] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization (built on the intelligence layer).
-- [ ] **Onboarding interview:** guided Career Brain population using the suggestions + intelligence infrastructure.
-- [ ] **Gmail integration** (optional): Archive job-related emails to your job records.
-
-### Long-term (v1.0)
+- [x] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization.
 - [x] Analytics dashboard: application velocity, conversion funnel by source, time-in-stage.
-- [ ] Salary negotiation assistant (grounded in your market data and profile).
 - [x] Skill gap analysis: compare your skills vs. target roles and suggest growth areas.
+- [ ] **First-run onboarding wizard:** build your Career Brain from uploaded résumés/cover letters/certifications/portfolio, or restore an existing CareerOS export — every step skippable.
+- [ ] Product polish pass (empty states, error messaging, accessibility, consistency).
+- [ ] A UI-reachable full backup (not just the CLI), an About page, and a read-only health/diagnostics page.
+
+### Version 1.1
+- [ ] Generalize the Suggestion Engine beyond skills, and add a Q&A-interview onboarding path for users with nothing to upload.
+- [ ] Tasks and Notifications feed UI (dashboard widgets, sidebar bell).
+- [ ] A real design-token system (spacing/shadow/motion scale).
+
+### Version 1.2
+- [ ] Desktop shell (Tauri) — this is when CareerOS actually gets packaged.
+- [ ] Calendar providers (Google/Apple/Outlook).
+- [ ] Local semantic search for the AI Coach.
+
+### Long-term roadmap
+- [ ] **Gmail integration** (optional, draft-only): prepare follow-ups from your data; sending is always your own click in your own mail client.
+- [ ] Salary negotiation assistant (grounded in your market data and profile).
+- [ ] Mobile companion (read-mostly capture-and-glance client).
+- [ ] Plugin ecosystem (speculative).
 
 ## Stack
 

@@ -103,8 +103,11 @@ The ask-the-user infrastructure. Missing skills detected during analysis
 create `pending` rows (idempotently — accepted/dismissed are never re-asked).
 `resolveSuggestion` applies **only the user's answers** to the Brain: a skill,
 optionally an evidence achievement linked via `achievement_skills`. **Owns:**
-the lifecycle pending → accepted/dismissed, and the only programmatic write
-path into the Brain. Designed to be reused by onboarding and the AI Coach.
+the lifecycle pending → accepted/dismissed. Skill-only today (`type` is a
+stub for future generalization); `lib/import/commit.ts`'s `commitImport` is
+the other reviewed write path, used by the standalone Import feature and
+onboarding (ADR-017, ADR-020) — both follow the same propose → human
+confirms → deterministic write shape.
 
 ### AI Layer (`lib/ai/`)
 One entry point, `aiComplete({system, prompt, purpose, jobId, ...})`, that

@@ -24,30 +24,83 @@ document is the *how*.
    scannable, empty states always.
 6. **Self-test + verify + document** (see §4, §5), then commit.
 
-## 2. Recommended milestone order (remaining v1.x work)
+## 2. Version Roadmap
 
-1. **Extension v3 — autofill provider.** Implement `AutofillProvider` in the
-   extension against `POST /api/extension/application` (session payload is
-   complete and shipped). Fill via `SITE_PROFILES` selectors, fall back to
-   `FieldMap` aliases; render the checklist + validation in the sidebar;
-   record submissions via PUT. *Never auto-submit.*
-2. **Tasks UI.** `/api/tasks` exists; add a small dashboard widget (open
-   tasks due this week) and per-job task creation on the job page.
-3. **Notifications UI.** Feed from `/api/notifications` with per-item
-   dismiss; a quiet bell in the sidebar. No polling faster than page loads.
-4. **Onboarding interview.** Guided Brain population reusing the Suggestion
-   Engine's Q&A components — greenfield users answer questions instead of
-   filling forms.
-5. **Desktop shell (Tauri).** Wrap the server; repoint `config.paths.root`
-   to app-data; expose export/backup/token via UI (all logic already in
-   `lib/`); add a native `NotificationChannelPlugin`.
-6. **Calendar providers.** Google/Apple/Outlook `CalendarProviderPlugin`s
-   (user's own credentials). ICS export already covers the passive case.
-7. **Gmail plugin (draft-only).** `MessagingPlugin` drafting follow-ups from
-   engine data; sending is always a user click in their own mail client.
-8. **Local semantic search.** `embeddings` migration (see
-   MASTER_ARCHITECTURE §6) + retrieval inside `lib/intelligence/context.ts`
-   so the coach can ground in the whole Brain at scale.
+Per `ENGINEERING_PRINCIPLES.md` §10, CareerOS is planned in versions, not
+isolated milestones. This section is the authoritative record of what
+belongs in each version — keep it current as versions ship; mirror it
+briefly in `README.md` for users.
+
+### Version 1.0 — a polished, downloadable-feeling product
+
+The application should never open to an empty database, every everyday
+mutation should give honest feedback, and every production capability
+should be reachable from the UI (no CLI required).
+
+- **First-run onboarding.** A wizard (`/onboarding`, `lib/onboarding/`) that
+  builds the Career Brain from uploaded résumés/cover letters/certifications
+  (real PDF/DOCX parsing, `lib/import/fileText.ts`), a portfolio-projects
+  step, or a restored CareerOS export — every step skippable, ending in a
+  Brain-completeness readout. This **supersedes** the older
+  "Suggestions-engine Q&A interview" idea recorded in earlier drafts of this
+  document, `docs/MASTER_ARCHITECTURE.md`, `docs/ARCHITECTURE.md`, and
+  `README.md` (see ADR-020) — that idea is not abandoned, it's deferred to
+  v1.1 as a second onboarding path for users with nothing to upload yet.
+- **Résumé/cover-letter import** (`lib/import/`), **in-app AI provider
+  setup** (`lib/ai/runtime.ts`, Settings), and a **one-click data
+  download** — already shipped ahead of this version's formal scoping.
+- **Extension autofill** (`extension/src/autofill.ts`) — already shipped.
+- **Product polish**: fixing unreachable features (Companies, cover
+  letters), silent-failure mutations, missing delete-confirmation and
+  keyboard-accessibility gaps, and empty-state/consistency issues found in a
+  full page-by-page audit.
+- **Desktop-readiness fixes**: routing the last stray `process.cwd()`
+  through `config.paths`, and a UI-reachable full backup (not just the CLI
+  and the JSON-only download).
+- **Packaging-prep scaffolding**: an About page, a read-only health/
+  diagnostics page, a backup reminder, a `CHANGELOG.md`, and the version
+  bump to `1.0.0` itself. Not full Tauri packaging — that's v1.2.
+
+### Version 1.1
+
+- **Generalize `brain_suggestions`** beyond skill-only (the `type` column
+  already has a stub comment for this) so onboarding's zero-document path
+  and other ambiguous-information flows can route through it properly.
+- **A Q&A-interview onboarding path** for users with nothing to upload,
+  built on the generalized Suggestion Engine — the idea deferred from v1.0.
+- **Tasks UI**: a dashboard widget (open tasks due this week) and per-job
+  task creation on the job page (`/api/tasks` already exists).
+- **Notifications UI**: a feed from `/api/notifications` with per-item
+  dismiss and a quiet bell in the sidebar (the engine already exists;
+  v1.0 only adds one more deterministic check to it for the backup
+  reminder — the general feed UI itself is v1.1).
+- **A real design-token system** (spacing/shadow/motion scale in
+  `globals.css`) — v1.0's polish pass deliberately used only ad hoc
+  Tailwind utilities and left this formalization for later.
+- **`/health` remediation actions** — v1.0's health page is read-only
+  diagnostics only.
+
+### Version 1.2
+
+- **Desktop shell (Tauri).** Wrap the server; repoint `config.paths.root`
+  to the platform app-data directory; expose export/backup/token via native
+  UI (all logic already in `lib/`); add a native `NotificationChannelPlugin`.
+- **Calendar providers.** Google/Apple/Outlook `CalendarProviderPlugin`s
+  (user's own credentials). ICS export already covers the passive case.
+- **Local semantic search.** `embeddings` migration (see
+  MASTER_ARCHITECTURE §6) + retrieval inside `lib/intelligence/context.ts`
+  so the coach can ground in the whole Brain at scale.
+
+### Long-term roadmap
+
+- **Gmail plugin (draft-only).** `MessagingPlugin` drafting follow-ups from
+  engine data; sending is always a user click in their own mail client.
+- **Salary negotiation assistant**, grounded in the user's own market data
+  and profile.
+- **Mobile companion** (read-mostly capture-and-glance client; never a
+  hosted replica).
+- **Plugin ecosystem** (speculative — third-party engines over the same
+  Brain, under the same truthfulness and privacy rules).
 
 ## 3. Coding standards
 
