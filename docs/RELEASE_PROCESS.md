@@ -38,9 +38,13 @@ Each build runs `scripts/prepare-tauri-server.mjs` (via
 bundles the runner's own Node binary as the sidecar for that platform.
 
 **Honest limitation:** Linux artifacts are the only ones that can be
-built and smoke-tested in the development container. Windows and macOS
-artifacts come from CI and must be validated by a human on real machines
-before a release is published.
+built and smoke-tested in the development container — and of those, only
+the `.deb` reliably: AppImage bundling downloads its AppRun tooling from
+GitHub at build time, which restricted networks may block (observed:
+HTTP 403 through a proxy). CI runners have open egress, so the release
+workflow produces AppImages fine. Windows and macOS artifacts come from
+CI and must be validated by a human on real machines before a release is
+published.
 
 ## 3. Code signing (not configured by default)
 

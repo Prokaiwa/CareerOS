@@ -4,6 +4,42 @@ All notable changes to CareerOS are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/) — newest release on top, one
 section per version, changes grouped as Added / Changed / Fixed.
 
+## [1.1.0]
+
+CareerOS becomes a real desktop application you can install without a
+terminal, plus the release machinery around it.
+
+### Added
+- **Desktop app (Tauri shell):** a native window around the same local
+  server — app menu (About / Health / Settings / Back Up / Quit),
+  remembered window size/position, native folder pickers for choosing
+  backup and export destinations, and your data stored in the standard
+  per-user app-data folder. The bundled server is guarded from both sides
+  so no stray background process outlives the app.
+- **Installers:** a Linux `.deb` built and verified end-to-end, and a
+  GitHub Actions release matrix producing Windows (NSIS) and macOS (dmg)
+  bundles on every version tag. New docs: `docs/INSTALLATION.md`,
+  `docs/RELEASE_PROCESS.md`, `docs/DESKTOP_ARCHITECTURE.md`.
+- **Version & update readiness:** `GET /api/version` reports the app
+  version, database schema state, and whether the install is ready for a
+  future update — shown on About and Health.
+- **Extension install helper:** a guided `/extension` page with numbered
+  steps, copyable token/URL, browser detection, troubleshooting, and a
+  live "extension connected" indicator.
+- **Onboarding AI step:** connect an AI provider (or skip) right in the
+  first-run wizard, before the document-upload steps that use it.
+- **AI master switch:** turn AI off everywhere without deleting your
+  saved key, and back on with one click.
+- Full export can now be written directly to a folder you choose
+  (`POST /api/data/export`), alongside the existing download.
+
+### Changed
+- Backup and export accept a destination folder (validated server-side);
+  the browser extension's permissions no longer assume port 3000, so it
+  keeps working whatever port the desktop app runs on.
+- A public-release copy audit: developer-only language softened, busy and
+  error states added where missing, keyboard/a11y fixes on newer pages.
+
 ## [1.0.0]
 
 First versioned release. Prior work (Milestones 1–8) built the Career Brain,

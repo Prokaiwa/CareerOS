@@ -22,6 +22,18 @@ CareerOS centers on a **canonical, structured record of your career**—your "Ca
 
 Instead of hand-editing multiple Word documents, you **edit the Brain once**. Resumes are **generated FROM the Brain** as immutable, tailored snapshots. Apply for a job? Generate a resume tailored to that job description. Change your resume in one place; the Brain stays canonical. Future features (AI job fit scoring, an AI coach grounded in your history) all read and learn from this same Brain.
 
+## Download the desktop app (easiest)
+
+CareerOS ships as a native desktop app — no Node.js, no terminal, no
+setup. Download the installer for Windows, macOS, or Linux from the
+[**Releases page**](https://github.com/Prokaiwa/CareerOS/releases) and
+follow [docs/INSTALLATION.md](docs/INSTALLATION.md) (it also explains the
+unsigned-build warning each OS shows and where your data lives). First
+launch walks you through onboarding: import a résumé, connect an optional
+AI provider, or restore an export from another machine.
+
+The two options below run the exact same app from source instead.
+
 ## Run it online — no install, works on a locked-down computer
 
 Can't install Node.js (e.g. a work computer)? Run the whole thing in your
@@ -228,19 +240,22 @@ Roadmap — this is a shorter mirror of it.)
 - [x] **Company Intelligence:** per-company dossiers aggregating your jobs, contacts, interactions, and notes, with optional AI summarization.
 - [x] Analytics dashboard: application velocity, conversion funnel by source, time-in-stage.
 - [x] Skill gap analysis: compare your skills vs. target roles and suggest growth areas.
-- [ ] **First-run onboarding wizard:** build your Career Brain from uploaded résumés/cover letters/certifications/portfolio, or restore an existing CareerOS export — every step skippable.
-- [ ] Product polish pass (empty states, error messaging, accessibility, consistency).
-- [ ] A UI-reachable full backup (not just the CLI), an About page, and a read-only health/diagnostics page.
+- [x] **First-run onboarding wizard:** build your Career Brain from uploaded résumés/cover letters/certifications/portfolio, or restore an existing CareerOS export — every step skippable.
+- [x] Product polish pass (empty states, error messaging, accessibility, consistency).
+- [x] A UI-reachable full backup (not just the CLI), an About page, and a read-only health/diagnostics page.
 
-### Version 1.1
-- [ ] Generalize the Suggestion Engine beyond skills, and add a Q&A-interview onboarding path for users with nothing to upload.
-- [ ] Tasks and Notifications feed UI (dashboard widgets, sidebar bell).
-- [ ] A real design-token system (spacing/shadow/motion scale).
+### Version 1.1 — desktop packaging & distribution
+- [x] Desktop shell (Tauri): the app as a real installable program — native window/menu/dialogs, data in the platform app-data folder.
+- [x] Installers: Linux `.deb` (verified) + a CI matrix for Windows/macOS bundles; release + install docs.
+- [x] Version & update-readiness service (`/api/version`, surfaced on About/Health).
+- [x] Extension install helper page with live connection status.
+- [x] Onboarding AI-connect step and an AI master on/off switch (key kept).
 
 ### Version 1.2
-- [ ] Desktop shell (Tauri) — this is when CareerOS actually gets packaged.
+- [ ] Auto-update service (v1.1 reports readiness; v1.2 acts on it).
 - [ ] Calendar providers (Google/Apple/Outlook).
 - [ ] Local semantic search for the AI Coach.
+- [ ] Deferred UX: Q&A-interview onboarding path + generalized Suggestion Engine, Tasks/Notifications feed UI, design-token system.
 
 ### Long-term roadmap
 - [ ] **Gmail integration** (optional, draft-only): prepare follow-ups from your data; sending is always your own click in your own mail client.

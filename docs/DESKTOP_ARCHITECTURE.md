@@ -17,7 +17,9 @@ Companion to [ENGINEERING_PRINCIPLES.md](./ENGINEERING_PRINCIPLES.md) §7
 │         env: PORT, HOSTNAME=127.0.0.1, CAREEROS_DATA_DIR=<platform app-data>             │
 │    3. poll http://127.0.0.1:<port>/ until it answers                                     │
 │    4. open native webview at that URL                                                    │
-│    5. on exit: kill the sidecar (WAL-mode SQLite is crash-safe)                          │
+│    5. on exit: kill the sidecar (WAL-mode SQLite is crash-safe); a parent-PID            │
+│       watchdog preloaded into the sidecar also exits it if the shell dies                │
+│       without cleanup (crash, SIGKILL) — lifetime is guarded from both sides             │
 │                                                                                          │
 │  bundled:  Node runtime (externalBin sidecar, per-target)                                │
 │            .next/standalone server + static assets + migration .sql files (resources)    │

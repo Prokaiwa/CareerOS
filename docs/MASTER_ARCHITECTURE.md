@@ -110,7 +110,9 @@ Same-origin (UI): CRUD under `/api/brain/*`, `/api/jobs/*` (+ `score`,
 `/api/coach/*`, `/api/analytics`, `/api/review/weekly`, `/api/tasks/*`,
 `/api/notifications`, `/api/calendar` (`?format=ics`), `/api/import/*`
 (`extract`, `commit`, `parse-file`), `/api/onboarding` (+ `restore`),
-`/api/data/*` (`download`, `backup`), `/api/settings/ai` (+ `test`).
+`/api/data/*` (`download`, `backup`, `export` — the latter two accept an
+optional server-validated `destDir`), `/api/settings/ai` (+ `test`),
+`/api/version` (update readiness).
 
 Cross-origin (extension; bearer token + CORS, see ADR-011): 
 `/api/extension/ping`, `/api/extension/clip`, `/api/extension/analyze`,
@@ -122,12 +124,17 @@ identical with or without it; only narrative fields differ.
 
 ## 4. Boundaries
 
-**Desktop boundary.** A Tauri (or equivalent) shell wraps the same Next.js
-server (or a future extracted server) + SQLite. Required seams, all already
-in place: `config.paths` (repoint root at app-data dir), `lib/`-callable
-export/backup/migrations (no CLI needed), engines UI-independent,
-`NotificationChannel`/`CalendarProvider` adapters for native notifications
-and calendars. Nothing may assume a public origin or multi-user semantics.
+**Desktop boundary (shipped in v1.1, ADR-022).** The Tauri shell in
+`src-tauri/` wraps the same Next.js server + SQLite: the standalone server
+build runs as a Node sidecar on 127.0.0.1 (port fallback from 3000) with
+`CAREEROS_DATA_DIR` pointed at the platform app-data directory (ADR-023);
+the webview is a remote http origin granted exactly one IPC permission
+(folder-picker dialog). The only web-side platform code is
+`lib/platform/desktop.ts` (client-only); native capabilities reach engines
+as plain data (`destDir` on `createBackup`/`exportAll`). Full rules and
+diagram: `docs/DESKTOP_ARCHITECTURE.md`. Still true: engines
+UI-independent, no public-origin or multi-user assumptions; native
+notifications remain a v1.2 `NotificationChannelPlugin`.
 
 **Browser boundary.** The extension executes detection/autofill in page
 context but owns **zero judgment**: it sends extracted fields to
@@ -196,6 +203,9 @@ is surfaced read-only in the sidebar for now.
 
 | Integration | Mechanism | Status |
 |---|---|---|
+| Desktop shell | Tauri + Node sidecar (`src-tauri/`, ADR-022/023) | **shipped in v1.1** |
+| Desktop installers | `.deb` verified + CI matrix for NSIS/dmg (`docs/RELEASE_PROCESS.md`) | shipped in v1.1 |
+| Auto-updates | Tauri updater driven by `/api/version` readiness | readiness shipped; updater = v1.2 |
 | Gmail | `MessagingPlugin` (draft-only) + user's own OAuth creds | interface shipped |
 | Google/Apple/Outlook calendars | `CalendarProviderPlugin`; ICS export already works | ICS shipped |
 | Desktop notifications | `NotificationChannelPlugin` in the Tauri shell | interface shipped |

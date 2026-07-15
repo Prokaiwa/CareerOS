@@ -59,37 +59,53 @@ should be reachable from the UI (no CLI required).
   and the JSON-only download).
 - **Packaging-prep scaffolding**: an About page, a read-only health/
   diagnostics page, a backup reminder, a `CHANGELOG.md`, and the version
-  bump to `1.0.0` itself. Not full Tauri packaging — that's v1.2.
+  bump to `1.0.0` itself. Not full Tauri packaging — that shipped in v1.1.
 
-### Version 1.1
+### Version 1.1 — desktop packaging & distribution (shipped)
 
-- **Generalize `brain_suggestions`** beyond skill-only (the `type` column
-  already has a stub comment for this) so onboarding's zero-document path
-  and other ambiguous-information flows can route through it properly.
-- **A Q&A-interview onboarding path** for users with nothing to upload,
-  built on the generalized Suggestion Engine — the idea deferred from v1.0.
-- **Tasks UI**: a dashboard widget (open tasks due this week) and per-job
-  task creation on the job page (`/api/tasks` already exists).
-- **Notifications UI**: a feed from `/api/notifications` with per-item
-  dismiss and a quiet bell in the sidebar (the engine already exists;
-  v1.0 only adds one more deterministic check to it for the backup
-  reminder — the general feed UI itself is v1.1).
-- **A real design-token system** (spacing/shadow/motion scale in
-  `globals.css`) — v1.0's polish pass deliberately used only ad hoc
-  Tailwind utilities and left this formalization for later.
-- **`/health` remediation actions** — v1.0's health page is read-only
-  diagnostics only.
+Product direction pulled the desktop shell forward from v1.2: v1.1 makes
+CareerOS installable by a non-technical person. What shipped:
+
+- **Tauri desktop shell** (`src-tauri/`, ADR-022): the standalone Next.js
+  server runs as a Node sidecar on 127.0.0.1 (port fallback from 3000),
+  opened in a native webview with an app menu, persisted window state,
+  native folder pickers for backup/export destinations, and a
+  double-guarded sidecar lifetime (kill-on-exit + a parent watchdog).
+- **The data-dir seam** (ADR-023): `CAREEROS_DATA_DIR` points all user
+  data at the platform app-data directory; migrations ship inside the
+  server bundle.
+- **Installers & CI**: a verified Linux `.deb` (plus best-effort
+  AppImage), and a tag-triggered GitHub Actions matrix producing
+  Windows NSIS and macOS dmg bundles — see `docs/RELEASE_PROCESS.md`
+  and `docs/INSTALLATION.md`.
+- **Version service** (`lib/version.ts`, `GET /api/version`): app version,
+  schema state, and an update-*readiness* verdict, surfaced on About and
+  Health. Reporting only — the updater itself is v1.2.
+- **Extension install helper** (`/extension`): guided install steps,
+  copyable token/URL, live "extension connected" status
+  (`extension_last_seen` written by the ping route), troubleshooting.
+- **Onboarding AI step** — connect a provider (or skip) before the
+  document steps, since extraction runs through the AI layer.
+- **AI master switch** — `ai_disabled` turns AI off everywhere without
+  deleting the saved key.
+- **Public-release audit** — a sweep of user-facing copy (developer-only
+  language, missing busy/error states, a11y) ahead of distribution.
 
 ### Version 1.2
 
-- **Desktop shell (Tauri).** Wrap the server; repoint `config.paths.root`
-  to the platform app-data directory; expose export/backup/token via native
-  UI (all logic already in `lib/`); add a native `NotificationChannelPlugin`.
+- **Auto-update service.** v1.1 reports readiness; v1.2 acts on it —
+  Tauri's updater plugin (needs a signing keypair + update manifest
+  hosting) driven by the `/api/version` readiness contract.
 - **Calendar providers.** Google/Apple/Outlook `CalendarProviderPlugin`s
   (user's own credentials). ICS export already covers the passive case.
 - **Local semantic search.** `embeddings` migration (see
   MASTER_ARCHITECTURE §6) + retrieval inside `lib/intelligence/context.ts`
   so the coach can ground in the whole Brain at scale.
+- **Deferred v1.x UX items:** generalized `brain_suggestions` types + the
+  Q&A-interview onboarding path for zero-document users (ADR-020's
+  deferred half), Tasks UI, Notifications feed UI, a real design-token
+  system, `/health` remediation actions, and a native
+  `NotificationChannelPlugin` in the shell.
 
 ### Long-term roadmap
 
@@ -163,18 +179,34 @@ grep -rn "process.cwd()" lib app --include="*.ts*" | grep -v config.ts  # → em
 - Never rename/repurpose/delete columns; deprecate in docs instead.
 - Test: run the app against a database created before your change.
 
-## 6. Desktop migration playbook (Tauri or equivalent)
+## 6. Desktop shell (implemented in v1.1)
 
-1. Shell launches the Node server (or the future extracted engine server)
-   as a sidecar bound to 127.0.0.1 on a free port; webview points at it.
-2. Set the data root: point `config.paths.root` derivation at the platform
-   app-data directory (one change in `lib/config.ts`).
-3. Surface in native UI: backup (`createBackup`), export (`exportAll`),
-   extension token (`getOrCreateExtensionToken`), .env-equivalent settings.
-4. Implement `NotificationChannelPlugin` with OS notifications fed by
-   `computeNotifications()` on a timer.
-5. The browser extension keeps working unchanged — same localhost API.
-6. Nothing else changes: that's the point of the boundaries.
+The playbook this section used to describe is now real code — see
+`docs/DESKTOP_ARCHITECTURE.md` for the authoritative picture. How it
+actually works:
+
+1. `src-tauri/src/main.rs` picks the first free port from 3000, spawns
+   the bundled Node runtime (Tauri external binary) running the
+   standalone Next.js server build, polls until HTTP answers, then opens
+   the webview at `http://127.0.0.1:<port>`.
+2. The data root is set per ADR-023: the shell passes
+   `CAREEROS_DATA_DIR=<platform app-data dir>`; `lib/config.ts` resolves
+   everything user-owned under it while migrations resolve from the app
+   directory (they ship inside the server bundle).
+3. Native surface: an app menu navigating to the existing pages, and
+   folder pickers (`lib/platform/desktop.ts` → `destDir` on
+   `createBackup`/`exportAll`). Settings/token/AI stay pure web UI —
+   they were built UI-reachable already.
+4. Sidecar lifetime is double-guarded: kill-on-exit in the shell plus a
+   parent-PID watchdog preloaded into the sidecar.
+5. The browser extension keeps working unchanged — same localhost API,
+   now with port-less host permissions so the port fallback can't
+   strand it.
+6. Still deferred: a native `NotificationChannelPlugin` (v1.2, with OS
+   notifications fed by `computeNotifications()` on a timer).
+
+Build: `npm run desktop:build` (locally, current platform only) or the
+tag-triggered CI matrix — `docs/RELEASE_PROCESS.md`.
 
 ## 7. Mobile companion playbook (future)
 
