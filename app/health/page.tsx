@@ -5,6 +5,7 @@ import { config } from "@/lib/config";
 import { getAiRuntime } from "@/lib/ai";
 import { getSetting, getOrCreateExtensionToken } from "@/lib/settings";
 import { appInfo } from "@/lib/appInfo";
+import { getVersionReport } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 
@@ -56,9 +57,15 @@ export default function HealthPage() {
   const ai = getAiRuntime();
   const token = getOrCreateExtensionToken();
   const lastBackupAt = getSetting("last_backup_at");
+  const version = getVersionReport();
 
   const checks: Array<{ label: string; status: CheckStatus; detail: string }> = [
     { label: "Database", ...database },
+    {
+      label: "Schema / update readiness",
+      status: version.readiness === "ready" ? "ok" : version.readiness === "error" ? "fail" : "warn",
+      detail: `${version.database.applied}/${version.database.available} migrations applied — ${version.notes[0] ?? version.readiness}`,
+    },
     { label: "Storage directory", ...storage },
     {
       label: "AI provider",

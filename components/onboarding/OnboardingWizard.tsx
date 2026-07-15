@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizard } from "@/components/import/ImportWizard";
+import { AiSettingsForm, type AiStatus } from "@/components/settings/AiSettingsForm";
 import type { BrainCompleteness } from "@/lib/onboarding";
 
-type Step = "welcome" | "resume" | "cover-letter" | "certifications" | "portfolio" | "complete";
+type Step = "welcome" | "resume" | "cover-letter" | "certifications" | "portfolio" | "ai" | "complete";
 
 const DOCUMENT_STEPS: Array<{ step: Step; next: Step; title: string; hint: string }> = [
   {
@@ -34,9 +35,14 @@ const DOCUMENT_STEPS: Array<{ step: Step; next: Step; title: string; hint: strin
   },
 ];
 
-export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
+const TOTAL_STEPS = DOCUMENT_STEPS.length + 1; // the AI step comes first
+
+export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
+  // Extraction runs through the AI layer, so track liveness client-side —
+  // the user may connect a provider in the AI step below.
+  const [aiEnabled, setAiEnabled] = useState(aiStatus.enabled);
   const [restoreMode, setRestoreMode] = useState(false);
   const [restoreBusy, setRestoreBusy] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
@@ -106,7 +112,7 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
         {!restoreMode ? (
           <div className="mt-8 flex flex-col items-center gap-3">
             <button
-              onClick={() => setStep("resume")}
+              onClick={() => setStep("ai")}
               className="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
             >
               Get started
@@ -147,12 +153,50 @@ export function OnboardingWizard({ aiEnabled }: { aiEnabled: boolean }) {
     );
   }
 
+  if (step === "ai") {
+    return (
+      <div className="mx-auto max-w-2xl py-10">
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+          Step 1 of {TOTAL_STEPS}
+        </p>
+        <h1 className="mt-1 text-xl font-bold">Connect an AI model (optional)</h1>
+        <p className="mt-1 text-sm text-stone-500">
+          With AI connected, the next steps can read your documents and propose Career Brain
+          entries for you to review. Without it, everything still works — you&apos;ll just fill
+          things in by hand. You can set this up any time in Settings.
+        </p>
+
+        <div className="mt-6 rounded-lg border border-stone-200 bg-white p-5">
+          <AiSettingsForm initial={aiStatus} />
+        </div>
+
+        <div className="mt-6 border-t border-stone-200 pt-4">
+          <button
+            onClick={async () => {
+              try {
+                const s = await fetch("/api/settings/ai").then((r) => r.json());
+                setAiEnabled(Boolean(s.enabled));
+              } catch {
+                // keep the server-rendered value if the check fails
+              }
+              setStep("resume");
+            }}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+          >
+            Continue
+          </button>
+          <span className="ml-3 text-xs text-stone-400">Not now? Just continue — this step is optional.</span>
+        </div>
+      </div>
+    );
+  }
+
   const doc = DOCUMENT_STEPS.find((d) => d.step === step);
   if (doc) {
     return (
       <div className="mx-auto max-w-2xl py-10">
         <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
-          Step {DOCUMENT_STEPS.findIndex((d) => d.step === step) + 1} of {DOCUMENT_STEPS.length}
+          Step {DOCUMENT_STEPS.findIndex((d) => d.step === step) + 2} of {TOTAL_STEPS}
         </p>
         <h1 className="mt-1 text-xl font-bold">{doc.title}</h1>
         <p className="mt-1 text-sm text-stone-500">{doc.hint}</p>

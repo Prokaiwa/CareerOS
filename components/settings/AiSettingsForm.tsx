@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 
-type Status = {
+export type AiStatus = {
   provider: string;
   model: string;
   enabled: boolean;
+  disabled: boolean;
   source: "settings" | "env" | "none";
   hasKey: boolean;
   isLocal: boolean;
@@ -20,12 +21,12 @@ const PROVIDERS: Array<{ value: string; label: string; local: boolean; hint: str
   { value: "lmstudio", label: "LM Studio (runs on your machine)", local: true, hint: "No key — needs LM Studio's server running" },
 ];
 
-export function AiSettingsForm({ initial }: { initial: Status }) {
+export function AiSettingsForm({ initial }: { initial: AiStatus }) {
   const [provider, setProvider] = useState(initial.provider);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(initial.model);
-  const [status, setStatus] = useState<Status>(initial);
-  const [busy, setBusy] = useState<"save" | "test" | null>(null);
+  const [status, setStatus] = useState<AiStatus>(initial);
+  const [busy, setBusy] = useState<"save" | "test" | "toggle" | null>(null);
   const [test, setTest] = useState<{ ok: boolean; detail: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,23 +77,60 @@ export function AiSettingsForm({ initial }: { initial: Status }) {
     }
   }
 
+  async function toggleDisabled() {
+    setBusy("toggle");
+    setError(null);
+    try {
+      const res = await fetch("/api/settings/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ disabled: !status.disabled }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setError(errBody.error ?? "Failed to update the AI switch");
+        return;
+      }
+      setStatus(await res.json());
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const providerReady = status.hasKey || status.isLocal;
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            status.enabled ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"
+            status.enabled
+              ? "bg-emerald-100 text-emerald-700"
+              : status.disabled && providerReady
+                ? "bg-amber-100 text-amber-700"
+                : "bg-stone-100 text-stone-500"
           }`}
         >
-          {status.enabled ? "AI is on" : "AI is off"}
+          {status.enabled ? "AI is on" : status.disabled && providerReady ? "AI is paused" : "AI is off"}
         </span>
         <span className="text-stone-500">
           {status.enabled
             ? `Using ${status.provider}${status.model ? ` · ${status.model}` : ""}${
                 status.source === "env" ? " (from .env)" : ""
               }`
-            : "Choose a provider and add a key below."}
+            : status.disabled && providerReady
+              ? "Your key is saved — switch AI back on whenever you like."
+              : "Choose a provider and add a key below."}
         </span>
+        {providerReady && (
+          <button
+            onClick={toggleDisabled}
+            disabled={busy !== null}
+            className="ml-auto rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
+          >
+            {busy === "toggle" ? "Switching…" : status.disabled ? "Turn AI on" : "Turn AI off"}
+          </button>
+        )}
       </div>
 
       <div className="mt-4 space-y-3">

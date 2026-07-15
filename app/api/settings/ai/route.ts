@@ -14,6 +14,7 @@ function status() {
     provider: rt.provider,
     model: rt.model,
     enabled: rt.enabled,
+    disabled: rt.disabled,
     source: rt.source,
     hasKey: rt.apiKey.length > 0,
     isLocal: LOCAL.includes(rt.provider),
@@ -25,20 +26,23 @@ export async function GET() {
 }
 
 const saveSchema = z.object({
-  provider: z.enum(["anthropic", "openai", "google", "openrouter", "ollama", "lmstudio"]),
+  provider: z.enum(["anthropic", "openai", "google", "openrouter", "ollama", "lmstudio"]).optional(),
   /** Omit to keep the existing key; empty string clears it. */
   apiKey: z.string().optional(),
   model: z.string().optional(),
+  /** Master switch — true turns AI off everywhere while keeping the key. */
+  disabled: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
   const parsed = await parseBody(req, saveSchema);
   if ("error" in parsed) return parsed.error;
-  const { provider, apiKey, model } = parsed.data;
+  const { provider, apiKey, model, disabled } = parsed.data;
 
-  setSetting("ai_provider", provider);
+  if (provider !== undefined) setSetting("ai_provider", provider);
   if (apiKey !== undefined) setSetting("ai_api_key", apiKey.trim());
   if (model !== undefined) setSetting("ai_model", model.trim());
+  if (disabled !== undefined) setSetting("ai_disabled", disabled ? "true" : "false");
 
   return ok(status());
 }

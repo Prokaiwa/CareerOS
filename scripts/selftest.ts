@@ -32,6 +32,7 @@ import { buildAnalyticsReport } from "../lib/analytics";
 import { collectCalendarEvents, toIcs } from "../lib/calendar";
 import { computeNotifications } from "../lib/notifications";
 import { computeBrainCompleteness, isOnboardingNeeded, restoreFromExport, DatabaseNotEmptyError } from "../lib/onboarding";
+import { getVersionReport } from "../lib/version";
 
 let failures = 0;
 let passed = 0;
@@ -178,6 +179,17 @@ section("Onboarding");
   } catch (err) {
     check("restoreFromExport refuses a non-empty database", err instanceof DatabaseNotEmptyError);
   }
+}
+
+section("Version service");
+{
+  const v1 = getVersionReport();
+  const v2 = getVersionReport();
+  check("version report deterministic", deepEqual(v1, v2));
+  check("app version is semver-ish", /^\d+\.\d+\.\d+/.test(v1.app.version));
+  check("migrations applied matches available", v1.database.applied === v1.database.available, `applied=${v1.database.applied} available=${v1.database.available}`);
+  check("readiness is ready on a migrated db", v1.readiness === "ready", v1.readiness);
+  check("readiness notes non-empty", v1.notes.length > 0);
 }
 
 console.log(`\n${passed} passed, ${failures} failed`);

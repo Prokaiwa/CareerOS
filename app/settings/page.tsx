@@ -38,6 +38,7 @@ export default function SettingsPage() {
     provider: rt.provider,
     model: rt.model,
     enabled: rt.enabled,
+    disabled: rt.disabled,
     source: rt.source,
     hasKey: rt.apiKey.length > 0,
     isLocal: rt.provider === "ollama" || rt.provider === "lmstudio",
@@ -80,24 +81,11 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="mt-5">
-          <div className="text-xs font-medium text-stone-500">Install</div>
-          <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-stone-600">
-            <li>
-              Run <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">npm run build:ext</code> —
-              this bundles the extension into <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">extension/dist</code>.
-            </li>
-            <li>
-              Open <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">chrome://extensions</code>{" "}
-              and turn on Developer mode.
-            </li>
-            <li>
-              Click <span className="font-medium">Load unpacked</span> and select the{" "}
-              <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">extension/dist</code> folder,
-              then paste the API URL and token above into the popup.
-            </li>
-          </ol>
-        </div>
+        <p className="mt-4 text-sm">
+          <a href="/extension" className="text-emerald-700 underline transition-colors hover:no-underline">
+            Step-by-step install guide &amp; connection status →
+          </a>
+        </p>
       </section>
 
       {/* AI */}

@@ -15,6 +15,8 @@ export type AiRuntime = {
   model: string;
   baseUrl?: string;
   enabled: boolean;
+  /** Master switch: user turned AI off without deleting the key. */
+  disabled: boolean;
   /** Where the active config came from, for the Settings UI. */
   source: "settings" | "env" | "none";
 };
@@ -40,7 +42,12 @@ export function getAiRuntime(): AiRuntime {
         ? config.ai.lmstudioUrl
         : undefined;
 
-  const enabled = isLocal ? true : apiKey.length > 0;
+  // Master switch (ADR-016 refinement, v1.1): the user can turn AI off
+  // without deleting a saved key — provider readiness and user intent are
+  // separate questions.
+  const disabled = getSetting("ai_disabled") === "true";
+  const providerReady = isLocal ? true : apiKey.length > 0;
+  const enabled = providerReady && !disabled;
   const source: AiRuntime["source"] = isLocal
     ? getSetting("ai_provider")
       ? "settings"
@@ -51,7 +58,7 @@ export function getAiRuntime(): AiRuntime {
         ? "env"
         : "none";
 
-  return { provider, apiKey, model, baseUrl, enabled, source };
+  return { provider, apiKey, model, baseUrl, enabled, disabled, source };
 }
 
 /** Gates every AI feature. Replaces the old static `config.ai.enabled`. */

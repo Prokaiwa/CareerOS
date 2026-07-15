@@ -1,15 +1,43 @@
 import { config } from "@/lib/config";
 import { appInfo } from "@/lib/appInfo";
+import { getVersionReport } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 
 export default function AboutPage() {
+  const version = getVersionReport();
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold">
         About Career<span className="text-emerald-600">OS</span>
       </h1>
       <p className="mt-1 text-sm text-stone-500">Version {appInfo.version}</p>
+
+      <section className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold">Update readiness</h2>
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              version.readiness === "ready"
+                ? "bg-emerald-100 text-emerald-700"
+                : version.readiness === "pending-migrations"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+            }`}
+          >
+            {version.readiness === "ready" ? "Ready" : version.readiness}
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-stone-600">
+          Database schema: {version.database.applied} of {version.database.available} migrations
+          applied{version.database.latestTag ? ` (latest: ${version.database.latestTag})` : ""}.
+        </p>
+        {version.notes.map((note) => (
+          <p key={note} className="mt-1 text-xs text-stone-500">
+            {note}
+          </p>
+        ))}
+      </section>
 
       <section className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
         <h2 className="font-semibold">Mission</h2>
