@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { count } from "drizzle-orm";
+import { count, getTableColumns } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db, tables, runWithForeignKeysOff, checkForeignKeys } from "@/lib/db";
 
@@ -68,15 +68,20 @@ export function isDatabaseEmpty(): boolean {
 
 // JSON round-tripping turns Date instances (timestamp_ms columns) into ISO
 // instant strings; Drizzle expects Date objects back for those columns on
-// insert. Calendar-date columns (startDate, dueDate, ...) are plain
-// "YYYY-MM-DD" text with no "T", so this pattern — which requires a literal
-// T and a trailing Z/offset — only ever matches genuine instants.
+// insert. Revival must be driven by the COLUMN TYPE, not the value shape:
+// plain text columns can legitimately hold ISO-instant strings too (e.g.
+// the settings rows `last_backup_at` / `extension_last_seen`), and handing
+// those to the driver as Date objects makes every bind fail.
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
-function reviveTopLevelDates(row: Record<string, unknown>): Record<string, unknown> {
+function reviveTimestampColumns(table: SQLiteTable, row: Record<string, unknown>): Record<string, unknown> {
+  const columns = getTableColumns(table) as Record<string, { dataType?: string } | undefined>;
   const revived: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
-    revived[key] = typeof value === "string" && ISO_INSTANT.test(value) ? new Date(value) : value;
+    revived[key] =
+      columns[key]?.dataType === "date" && typeof value === "string" && ISO_INSTANT.test(value)
+        ? new Date(value)
+        : value;
   }
   return revived;
 }
@@ -100,7 +105,7 @@ export function restoreFromExport(payload: ExportShape): RestoreResult {
         const rows = payload.tables[key];
         if (!rows || rows.length === 0) continue;
         tx.insert(table)
-          .values(rows.map(reviveTopLevelDates) as never[])
+          .values(rows.map((row) => reviveTimestampColumns(table, row)) as never[])
           .run();
         restoredTables++;
         restoredRows += rows.length;
