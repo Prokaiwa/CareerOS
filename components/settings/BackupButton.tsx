@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { isDesktopShell, pickFolder } from "@/lib/platform/desktop";
 
 function daysAgo(iso: string | null): string {
   if (!iso) return "never";
@@ -15,13 +16,20 @@ export function BackupButton({ initialLastBackupAt }: { initialLastBackupAt: str
   const [lastBackupAt, setLastBackupAt] = useState(initialLastBackupAt);
   const [result, setResult] = useState<{ dir: string; copied: string[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => setDesktop(isDesktopShell()), []);
 
-  async function run() {
+  async function run(destDir?: string) {
     setBusy(true);
     setError(null);
     setResult(null);
     try {
-      const res = await fetch("/api/data/backup", { method: "POST" });
+      const res = await fetch("/api/data/backup", {
+        method: "POST",
+        ...(destDir
+          ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ destDir }) }
+          : {}),
+      });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Backup failed.");
@@ -36,16 +44,30 @@ export function BackupButton({ initialLastBackupAt }: { initialLastBackupAt: str
     }
   }
 
+  async function runToChosenFolder() {
+    const dir = await pickFolder("Choose where to save the backup");
+    if (dir) await run(dir);
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
         <button
-          onClick={run}
+          onClick={() => run()}
           disabled={busy}
           className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
         >
           {busy ? "Backing up…" : "Create full backup"}
         </button>
+        {desktop && (
+          <button
+            onClick={runToChosenFolder}
+            disabled={busy}
+            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
+          >
+            Back up to folder…
+          </button>
+        )}
         <span className="text-xs text-stone-500">Last backup: {daysAgo(lastBackupAt)}</span>
       </div>
       {result && (

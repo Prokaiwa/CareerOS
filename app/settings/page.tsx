@@ -7,6 +7,7 @@ import { getOrCreateExtensionToken, getSetting } from "@/lib/settings";
 import CopyButton from "@/components/settings/CopyButton";
 import { AiSettingsForm } from "@/components/settings/AiSettingsForm";
 import { BackupButton } from "@/components/settings/BackupButton";
+import { ExportToFolderButton } from "@/components/settings/ExportToFolderButton";
 
 export const dynamic = "force-dynamic";
 
@@ -136,6 +137,7 @@ export default function SettingsPage() {
           >
             ↓ Download all my data
           </a>
+          <ExportToFolderButton />
           <span className="text-xs text-stone-500">
             One JSON file with everything — save it anywhere as a portable backup.
           </span>

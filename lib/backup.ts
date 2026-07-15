@@ -24,8 +24,39 @@ function timestamp(): string {
   );
 }
 
-export function createBackup(): BackupResult {
-  const backupDir = path.join(config.paths.backups, `backup-${timestamp()}`);
+/** Thrown when a caller-supplied destination directory can't be used. */
+export class InvalidDestinationError extends Error {}
+
+/**
+ * Validates a user-chosen destination directory (e.g. from the desktop
+ * shell's native folder picker). The picker hands the server a plain path
+ * string — data, not a platform API — so the server re-checks it.
+ */
+export function resolveDestDir(destDir: string): string {
+  if (!path.isAbsolute(destDir)) {
+    throw new InvalidDestinationError("Destination must be an absolute path.");
+  }
+  const resolved = path.resolve(destDir);
+  let stat;
+  try {
+    stat = fs.statSync(resolved);
+  } catch {
+    throw new InvalidDestinationError("That folder doesn't exist.");
+  }
+  if (!stat.isDirectory()) {
+    throw new InvalidDestinationError("Destination must be a folder, not a file.");
+  }
+  try {
+    fs.accessSync(resolved, fs.constants.W_OK);
+  } catch {
+    throw new InvalidDestinationError("That folder isn't writable.");
+  }
+  return resolved;
+}
+
+export function createBackup(destDir?: string): BackupResult {
+  const baseDir = destDir ? resolveDestDir(destDir) : config.paths.backups;
+  const backupDir = path.join(baseDir, `backup-${timestamp()}`);
   fs.mkdirSync(backupDir, { recursive: true });
 
   const copied: string[] = [];

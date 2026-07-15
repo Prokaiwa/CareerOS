@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
+import { resolveDestDir } from "@/lib/backup";
 
 /**
  * Full data export: JSON snapshot of every table + a human-readable Markdown
@@ -53,9 +54,9 @@ export function buildExportObject() {
   };
 }
 
-export function exportAll(): ExportResult {
+export function exportAll(destDir?: string): ExportResult {
   const dateStr = new Date().toISOString().split("T")[0];
-  const exportsDir = path.join(config.paths.storage, "exports");
+  const exportsDir = destDir ? resolveDestDir(destDir) : path.join(config.paths.storage, "exports");
   fs.mkdirSync(exportsDir, { recursive: true });
 
   const profile = db.select().from(tables.profile).all();

@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-remote",
+  "description": "The webview shows the local CareerOS server (a remote http origin from Tauri's point of view). Grant it exactly one native capability: opening the folder-picker dialog for backup/export destinations. Nothing else — no shell, no fs, no window control.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["http://127.0.0.1:*", "http://localhost:*"]
+  },
+  "permissions": ["core:default", "dialog:allow-open"]
+}

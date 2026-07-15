@@ -15,6 +15,8 @@
     "backup": "tsx scripts/backup.ts",
     "build:ext": "node extension/build.mjs",
     "build:desktop-server": "node scripts/build-desktop-server.mjs",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
     "selftest": "tsx scripts/selftest.ts"
   },
   "dependencies": {
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
+    "@tauri-apps/cli": "^2.11.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.33",
     "@types/pdf-parse": "^1.1.5",
