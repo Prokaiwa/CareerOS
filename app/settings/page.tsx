@@ -101,8 +101,8 @@ export default function SettingsPage() {
           <AiSettingsForm initial={aiStatus} />
         </div>
         <p className="mt-3 text-xs text-stone-400">
-          {aiGenerationCount} AI call{aiGenerationCount === 1 ? "" : "s"} logged so far in the
-          audit table — every request is recorded here on your machine.
+          {aiGenerationCount} AI call{aiGenerationCount === 1 ? "" : "s"} logged so far in your
+          local activity log — every request is recorded here on your machine.
         </p>
       </section>
 
@@ -111,7 +111,7 @@ export default function SettingsPage() {
         <h2 className="font-semibold">Data</h2>
         <div className="mt-3 space-y-2 text-sm">
           <div>
-            <span className="text-stone-500">SQLite database</span>
+            <span className="text-stone-500">Database file</span>
             <div className="mt-0.5 truncate font-mono text-xs text-stone-700">{dbPath}</div>
           </div>
           <div>

@@ -124,7 +124,7 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
     return (
       <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
         AI is off, so extraction isn&apos;t available yet. Add a provider and key on the{" "}
-        <a href="/settings" className="font-medium text-emerald-700 underline">
+        <a href="/settings" className="font-medium text-emerald-700 underline transition-colors hover:no-underline">
           Settings
         </a>{" "}
         page, then come back here.

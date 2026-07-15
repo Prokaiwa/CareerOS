@@ -62,9 +62,11 @@ export default function HealthPage() {
   const checks: Array<{ label: string; status: CheckStatus; detail: string }> = [
     { label: "Database", ...database },
     {
-      label: "Schema / update readiness",
+      label: "Update readiness",
       status: version.readiness === "ready" ? "ok" : version.readiness === "error" ? "fail" : "warn",
-      detail: `${version.database.applied}/${version.database.available} migrations applied — ${version.notes[0] ?? version.readiness}`,
+      detail: `${version.database.applied}/${version.database.available} updates applied — ${
+        version.notes[0] ?? (version.readiness === "ready" ? "Up to date." : "Needs attention.")
+      }`,
     },
     { label: "Storage directory", ...storage },
     {
@@ -105,8 +107,8 @@ export default function HealthPage() {
       </div>
 
       <p className="mt-4 text-sm text-stone-600">
-        Anything not "OK" here? Visit{" "}
-        <a href="/settings" className="text-emerald-700 underline">
+        Anything not &quot;OK&quot; here? Visit{" "}
+        <a href="/settings" className="text-emerald-700 underline transition-colors hover:no-underline">
           Settings
         </a>{" "}
         to fix it — AI setup, backups, and the extension token all live there.

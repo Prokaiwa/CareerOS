@@ -4,6 +4,13 @@ import { getVersionReport } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 
+const READINESS_LABELS: Record<string, string> = {
+  ready: "Ready",
+  "pending-migrations": "Updating…",
+  ahead: "Needs app update",
+  error: "Attention needed",
+};
+
 export default function AboutPage() {
   const version = getVersionReport();
   return (
@@ -25,12 +32,12 @@ export default function AboutPage() {
                   : "bg-red-100 text-red-700"
             }`}
           >
-            {version.readiness === "ready" ? "Ready" : version.readiness}
+            {READINESS_LABELS[version.readiness] ?? version.readiness}
           </span>
         </div>
         <p className="mt-2 text-sm text-stone-600">
-          Database schema: {version.database.applied} of {version.database.available} migrations
-          applied{version.database.latestTag ? ` (latest: ${version.database.latestTag})` : ""}.
+          Local data format: {version.database.applied} of {version.database.available} updates
+          applied.
         </p>
         {version.notes.map((note) => (
           <p key={note} className="mt-1 text-xs text-stone-500">
@@ -54,7 +61,7 @@ export default function AboutPage() {
         <h2 className="font-semibold">Your data</h2>
         <div className="mt-3 space-y-2 text-sm">
           <div>
-            <span className="text-stone-500">SQLite database</span>
+            <span className="text-stone-500">Database file</span>
             <div className="mt-0.5 truncate font-mono text-xs text-stone-700">{config.paths.db}</div>
           </div>
           <div>
@@ -64,10 +71,10 @@ export default function AboutPage() {
         </div>
         <p className="mt-3 text-sm text-stone-600">
           Nothing here ever leaves this machine except AI calls you explicitly trigger — see{" "}
-          <a href="/settings" className="text-emerald-700 underline">
+          <a href="/settings" className="text-emerald-700 underline transition-colors hover:no-underline">
             Settings
           </a>{" "}
-          for the audit log, backups, and export.
+          for the activity log, backups, and export.
         </p>
       </section>
 
@@ -75,7 +82,7 @@ export default function AboutPage() {
         <h2 className="font-semibold">More</h2>
         <ul className="mt-2 space-y-1.5 text-sm">
           <li>
-            <a href="/health" className="text-emerald-700 underline">
+            <a href="/health" className="text-emerald-700 underline transition-colors hover:no-underline">
               Health &amp; diagnostics
             </a>
           </li>
@@ -84,7 +91,7 @@ export default function AboutPage() {
               href="https://github.com/Prokaiwa/CareerOS"
               target="_blank"
               rel="noopener"
-              className="text-emerald-700 underline"
+              className="text-emerald-700 underline transition-colors hover:no-underline"
             >
               Source on GitHub
             </a>

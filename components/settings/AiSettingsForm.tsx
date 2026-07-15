@@ -116,7 +116,7 @@ export function AiSettingsForm({ initial }: { initial: AiStatus }) {
         <span className="text-stone-500">
           {status.enabled
             ? `Using ${status.provider}${status.model ? ` · ${status.model}` : ""}${
-                status.source === "env" ? " (from .env)" : ""
+                status.source === "env" ? " (set outside CareerOS)" : ""
               }`
             : status.disabled && providerReady
               ? "Your key is saved — switch AI back on whenever you like."
@@ -135,8 +135,9 @@ export function AiSettingsForm({ initial }: { initial: AiStatus }) {
 
       <div className="mt-4 space-y-3">
         <div>
-          <label className="text-xs font-medium text-stone-500">Provider</label>
+          <label htmlFor="ai-provider" className="text-xs font-medium text-stone-500">Provider</label>
           <select
+            id="ai-provider"
             value={provider}
             onChange={(e) => {
               setProvider(e.target.value);
@@ -153,8 +154,9 @@ export function AiSettingsForm({ initial }: { initial: AiStatus }) {
 
         {!isLocal && (
           <div>
-            <label className="text-xs font-medium text-stone-500">API key</label>
+            <label htmlFor="ai-api-key" className="text-xs font-medium text-stone-500">API key</label>
             <input
+              id="ai-api-key"
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
@@ -162,15 +164,16 @@ export function AiSettingsForm({ initial }: { initial: AiStatus }) {
               className="mt-1 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
             />
             <p className="mt-1 text-xs text-stone-400">
-              Stored only in your local database on this machine. Never sent anywhere except the
-              provider you picked, and every call is logged in the audit table.
+              Stored only on this machine. Never sent anywhere except the provider you picked, and
+              every call is recorded in your local activity log.
             </p>
           </div>
         )}
 
         <div>
-          <label className="text-xs font-medium text-stone-500">Model (optional)</label>
+          <label htmlFor="ai-model" className="text-xs font-medium text-stone-500">Model (optional)</label>
           <input
+            id="ai-model"
             value={model}
             onChange={(e) => setModel(e.target.value)}
             placeholder="leave blank for the sensible default"

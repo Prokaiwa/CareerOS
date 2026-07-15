@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import CopyButton from "@/components/settings/CopyButton";
 
@@ -43,6 +43,7 @@ export function InstallGuide({
 }) {
   const router = useRouter();
   const [browser, setBrowser] = useState<Browser | null>(null);
+  const [checking, startChecking] = useTransition();
   useEffect(() => setBrowser(detectBrowser()), []);
 
   const seen = minutesAgo(lastSeen);
@@ -64,10 +65,11 @@ export function InstallGuide({
             {seen ? `Last heard from the extension ${seen}.` : "The extension hasn't contacted this app yet."}
           </span>
           <button
-            onClick={() => router.refresh()}
-            className="ml-auto rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-50"
+            onClick={() => startChecking(() => router.refresh())}
+            disabled={checking}
+            className="ml-auto rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50"
           >
-            Check again
+            {checking ? "Checking…" : "Check again"}
           </button>
         </div>
         <p className="mt-2 text-xs text-stone-400">
@@ -96,9 +98,9 @@ export function InstallGuide({
           <li>
             Get the extension folder: it ships with CareerOS at{" "}
             <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">extension/dist</code>. (If
-            that folder is missing, run{" "}
+            you&apos;re running CareerOS from source and that folder is missing, run{" "}
             <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">npm run build:ext</code>{" "}
-            once in the CareerOS folder.)
+            once first — most people using the packaged app already have this folder.)
           </li>
           <li>
             Open <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">chrome://extensions</code>{" "}

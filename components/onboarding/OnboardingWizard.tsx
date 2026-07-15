@@ -48,22 +48,48 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [restored, setRestored] = useState<{ restoredTables: number; restoredRows: number } | null>(null);
   const [completeness, setCompleteness] = useState<BrainCompleteness | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function finish(action: "complete" | "skip") {
-    await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-    router.push("/");
-    router.refresh();
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) {
+        setActionError("Couldn't save that — check that CareerOS is running and try again.");
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch {
+      setActionError("Couldn't reach the app to finish setup. Try again.");
+    } finally {
+      setActionBusy(false);
+    }
   }
 
   async function goToCompletion() {
-    const res = await fetch("/api/onboarding");
-    const data = await res.json();
-    setCompleteness(data.completeness);
-    setStep("complete");
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/onboarding");
+      if (!res.ok) {
+        setActionError("Couldn't load your Career Brain summary. Try again.");
+        return;
+      }
+      const data = await res.json();
+      setCompleteness(data.completeness);
+      setStep("complete");
+    } catch {
+      setActionError("Couldn't reach the app. Try again.");
+    } finally {
+      setActionBusy(false);
+    }
   }
 
   async function onRestoreFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -125,10 +151,12 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
             </button>
             <button
               onClick={() => finish("skip")}
-              className="text-sm text-stone-500 hover:text-stone-700 transition-colors"
+              disabled={actionBusy}
+              className="text-sm text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-50"
             >
-              Skip setup, I&apos;ll fill it in myself
+              {actionBusy ? "One moment…" : "Skip setup, I'll fill it in myself"}
             </button>
+            {actionError && <p className="text-xs text-red-600">{actionError}</p>}
           </div>
         ) : (
           <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-left">
@@ -142,6 +170,7 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
               <input type="file" accept=".json,application/json" onChange={onRestoreFile} disabled={restoreBusy} className="hidden" />
             </label>
             {restoreError && <p className="mt-2 text-xs text-red-600">{restoreError}</p>}
+            {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}
             <div className="mt-3">
               <button onClick={() => setRestoreMode(false)} className="text-xs text-stone-500 hover:text-stone-700 transition-colors">
                 ← Back
@@ -173,17 +202,21 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
         <div className="mt-6 border-t border-stone-200 pt-4">
           <button
             onClick={async () => {
+              setActionBusy(true);
               try {
                 const s = await fetch("/api/settings/ai").then((r) => r.json());
                 setAiEnabled(Boolean(s.enabled));
               } catch {
                 // keep the server-rendered value if the check fails
+              } finally {
+                setActionBusy(false);
               }
               setStep("resume");
             }}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+            disabled={actionBusy}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
-            Continue
+            {actionBusy ? "Loading…" : "Continue"}
           </button>
           <span className="ml-3 text-xs text-stone-400">Not now? Just continue — this step is optional.</span>
         </div>
@@ -206,11 +239,13 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
         <div className="mt-6 border-t border-stone-200 pt-4">
           <button
             onClick={() => (doc.next === "complete" ? goToCompletion() : setStep(doc.next))}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+            disabled={actionBusy}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
-            Continue
+            {actionBusy ? "Loading…" : "Continue"}
           </button>
           <span className="ml-3 text-xs text-stone-400">Nothing to add? Just continue — every step is optional.</span>
+          {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}
         </div>
       </div>
     );
@@ -255,10 +290,12 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
       )}
       <button
         onClick={() => finish("complete")}
-        className="mt-6 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        disabled={actionBusy}
+        className="mt-6 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
       >
-        Go to Dashboard
+        {actionBusy ? "One moment…" : "Go to Dashboard"}
       </button>
+      {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}
     </div>
   );
 }
