@@ -103,7 +103,11 @@ export function GenerateResumeForm({
         </label>
         {!aiEnabled && (
           <p className="mt-1 text-xs text-stone-400">
-            AI is not configured — set an API key in .env to enable tailoring.
+            AI is not configured — add a provider and key on the{" "}
+            <a href="/settings" className="text-emerald-700 underline transition-colors hover:no-underline">
+              Settings
+            </a>{" "}
+            page to enable tailoring.
           </p>
         )}
       </div>

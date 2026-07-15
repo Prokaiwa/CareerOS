@@ -20,10 +20,13 @@ export default function CoachPage() {
         <div className="mt-6 rounded-lg border border-stone-200 bg-white p-6">
           <h2 className="font-semibold">The coach needs an AI provider</h2>
           <p className="mt-2 text-sm text-stone-600">
-            Set <code className="rounded bg-stone-100 px-1">AI_PROVIDER</code> and a
-            matching API key in your <code className="rounded bg-stone-100 px-1">.env</code>,
-            then restart the app. Conversations stay on this machine, every call is
-            audit-logged, and the coach can only see the data you already keep here.
+            Add a provider and key on the{" "}
+            <a href="/settings" className="text-emerald-700 underline transition-colors hover:no-underline">
+              Settings
+            </a>{" "}
+            page — no files to edit, no restart needed. Conversations stay on this machine, every
+            call is recorded in your local activity log, and the coach can only see the data you
+            already keep here.
           </p>
           <p className="mt-3 text-xs text-stone-400">
             Everything else in CareerOS — scoring, gap analysis, resumes, cover
