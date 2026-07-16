@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ok, parseBody } from "@/lib/api";
 import { setSetting } from "@/lib/settings";
+import { encryptSecret } from "@/lib/secret";
 import { getAiRuntime } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,8 @@ export async function POST(req: Request) {
   const { provider, apiKey, model, disabled } = parsed.data;
 
   if (provider !== undefined) setSetting("ai_provider", provider);
-  if (apiKey !== undefined) setSetting("ai_api_key", apiKey.trim());
+  // Encrypt before storage; empty string (clearing the key) stays empty.
+  if (apiKey !== undefined) setSetting("ai_api_key", encryptSecret(apiKey.trim()));
   if (model !== undefined) setSetting("ai_model", model.trim());
   if (disabled !== undefined) setSetting("ai_disabled", disabled ? "true" : "false");
 

@@ -3,6 +3,17 @@ import path from "node:path";
 import { db, tables } from "@/lib/db";
 import { config } from "@/lib/config";
 import { resolveDestDir } from "@/lib/backup";
+import { SENSITIVE_SETTING_KEYS } from "@/lib/settings";
+
+/**
+ * Strips credential settings (the AI API key) out of an exported settings
+ * list. Exports and the "download all my data" file are the most likely
+ * things a user shares or syncs, so they must never carry a usable secret.
+ * A restore onto a fresh machine simply prompts for the key again.
+ */
+export function redactSettingsForExport<T extends { key: string }>(rows: T[]): T[] {
+  return rows.filter((row) => !SENSITIVE_SETTING_KEYS.includes(row.key));
+}
 
 /**
  * Full data export: JSON snapshot of every table + a human-readable Markdown
@@ -49,7 +60,7 @@ export function buildExportObject() {
       coachConversations: db.select().from(tables.coachConversations).all(),
       coachMessages: db.select().from(tables.coachMessages).all(),
       aiGenerations: db.select().from(tables.aiGenerations).all(),
-      settings: db.select().from(tables.settings).all(),
+      settings: redactSettingsForExport(db.select().from(tables.settings).all()),
     },
   };
 }

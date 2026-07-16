@@ -33,6 +33,8 @@ import { collectCalendarEvents, toIcs } from "../lib/calendar";
 import { computeNotifications } from "../lib/notifications";
 import { computeBrainCompleteness, isOnboardingNeeded, restoreFromExport, DatabaseNotEmptyError } from "../lib/onboarding";
 import { getVersionReport } from "../lib/version";
+import { encryptSecret, decryptSecret } from "../lib/secret";
+import { redactSettingsForExport } from "../lib/export";
 
 let failures = 0;
 let passed = 0;
@@ -179,6 +181,26 @@ section("Onboarding");
   } catch (err) {
     check("restoreFromExport refuses a non-empty database", err instanceof DatabaseNotEmptyError);
   }
+}
+
+section("Secret storage");
+{
+  const secret = "sk-ant-test-abc123";
+  const enc = encryptSecret(secret);
+  check("encrypted blob is prefixed", enc.startsWith("enc:v1:"));
+  check("encrypted blob hides the plaintext", !enc.includes(secret));
+  check("round-trips back to plaintext", decryptSecret(enc) === secret);
+  check("legacy plaintext passes through", decryptSecret("plain-key") === "plain-key");
+  check("empty stays empty", encryptSecret("") === "" && decryptSecret("") === "");
+  check("two encryptions differ (random IV)", encryptSecret(secret) !== encryptSecret(secret));
+
+  const redacted = redactSettingsForExport([
+    { key: "ai_api_key", value: "sk-ant-secret" },
+    { key: "onboarding_completed", value: "true" },
+    { key: "last_backup_at", value: "2026-01-01T00:00:00Z" },
+  ]);
+  check("export strips the api key", !redacted.some((r) => r.key === "ai_api_key"));
+  check("export keeps non-secret settings", redacted.length === 2);
 }
 
 section("Version service");

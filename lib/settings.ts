@@ -2,6 +2,15 @@ import crypto from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, tables } from "@/lib/db";
 
+/**
+ * Setting keys that hold credentials. These are encrypted at rest
+ * (lib/secret.ts) and stripped from exports (lib/export.ts). The extension
+ * token is deliberately NOT here: it only grants access to localhost on this
+ * machine and is regenerated on demand, so plaintext is an acceptable
+ * trade for it keeping working across a restore.
+ */
+export const SENSITIVE_SETTING_KEYS: readonly string[] = ["ai_api_key"];
+
 export function getSetting(key: string): string | null {
   const row = db
     .select()

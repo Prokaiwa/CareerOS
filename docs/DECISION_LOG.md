@@ -593,3 +593,33 @@ fine — the journal lives in the DB); the database is data.
 call site changed. Anything that writes must write under `root`
 (db/storage/backups); anything shipped must resolve from the app
 directory. New paths added to config must pick a side explicitly.
+
+## ADR-024 · Credential settings are encrypted at rest and redacted from exports
+
+**Decision.** The AI API key (and any future credential setting, listed in
+`SENSITIVE_SETTING_KEYS`) is stored AES-256-GCM-encrypted in the `settings`
+table, not as plaintext. The master key lives in a separate owner-only file
+(`<data-root>/.careeros-secret`) placed outside `data/` and `storage/` so
+`createBackup()` never copies it. `buildExportObject()` strips these keys
+entirely (`redactSettingsForExport`).
+
+**Context.** A user asked, reasonably, whether pasting a Claude API key
+into CareerOS could get it stolen. Two honest leak vectors existed: the key
+sat in plaintext in `careeros.db`, and it rode along in both the JSON export
+and full backups. Local-first means there's no server to breach, but a
+shared/synced database file or export is a real risk.
+
+**Rationale.** Encryption with a sibling keyfile neutralizes file-level
+leaks: a leaked/synced `.db` holds only ciphertext, and a backup archive
+(which copies just `data/`+`storage/`) never contains the keyfile, so its
+ciphertext is undecryptable elsewhere. Export redaction handles the
+download/JSON path. Reads decrypt transparently in `getAiRuntime()`; legacy
+plaintext keys pass through and re-encrypt on next save; a missing keyfile
+(db restored on a new machine) degrades to "no key, please re-enter" rather
+than an error.
+
+**Consequences.** This does NOT defend against malware or another process
+running as the same user — that could read the keyfile too. True per-app
+secret isolation needs the OS keychain, a later desktop-only enhancement,
+recorded here as the known ceiling. `SENSITIVE_SETTING_KEYS` deliberately
+excludes the extension token (localhost-only, regenerated on demand).

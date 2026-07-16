@@ -27,3 +27,6 @@ src-tauri/target/
 src-tauri/server/
 src-tauri/binaries/
 src-tauri/gen/
+
+# Local encryption master key for stored secrets (never commit, never back up)
+.careeros-secret

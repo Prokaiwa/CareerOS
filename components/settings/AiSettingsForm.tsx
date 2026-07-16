@@ -164,8 +164,9 @@ export function AiSettingsForm({ initial }: { initial: AiStatus }) {
               className="mt-1 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
             />
             <p className="mt-1 text-xs text-stone-400">
-              Stored only on this machine. Never sent anywhere except the provider you picked, and
-              every call is recorded in your local activity log.
+              Stored encrypted on this machine and left out of exports and backups. Never sent
+              anywhere except the provider you picked, and every call is recorded in your local
+              activity log.
             </p>
           </div>
         )}

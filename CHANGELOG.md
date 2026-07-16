@@ -32,6 +32,11 @@ terminal, plus the release machinery around it.
   saved key, and back on with one click.
 - Full export can now be written directly to a folder you choose
   (`POST /api/data/export`), alongside the existing download.
+- **Encrypted API-key storage:** your AI provider key is now stored
+  encrypted on disk (AES-256-GCM, with a master key kept in an owner-only
+  file outside the backup path) and is stripped from data exports and
+  backups entirely — so a shared export or synced database never carries
+  a usable key.
 
 ### Changed
 - Backup and export accept a destination folder (validated server-side);
