@@ -274,7 +274,7 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
             {actionBusy ? "Loading…" : "Skip this step →"}
           </button>
           <span className="text-xs text-stone-400">
-            Add above with “Confirm &amp; add to Brain”, or skip — every step is optional.
+            Every step is optional — use Back to revisit an earlier upload.
           </span>
         </div>
         {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}

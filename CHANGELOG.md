@@ -48,6 +48,13 @@ terminal, plus the release machinery around it.
   because nothing was ever committed. Added Back buttons throughout,
   disabled Extract until there's text, and a clear message when an
   extraction finds nothing usable.
+- The import flow (onboarding and the standalone /import page) gave no
+  feedback that anything happened: uploading a file only filled a text
+  box, and there was no visible confirmation after committing. Uploading a
+  file now extracts automatically; every successful commit shows an
+  explicit "✓ Added to your Career Brain" summary (counts of what was
+  added) with its own Continue/View-Brain actions, instead of silently
+  advancing or leaving you to guess whether anything saved.
 
 ### Changed
 - Backup and export accept a destination folder (validated server-side);

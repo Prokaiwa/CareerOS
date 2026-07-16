@@ -34,6 +34,7 @@ export function ImportWizard({
   const [error, setError] = useState<string | null>(null);
   const [proposal, setProposal] = useState<ExtractedBrain>(emptyProposal);
   const [counts, setCounts] = useState<ImportCounts | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   const [includeProfile, setIncludeProfile] = useState(true);
   const [expChecked, setExpChecked] = useState<boolean[]>([]);
@@ -46,13 +47,17 @@ export function ImportWizard({
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
+    // Only auto-extract when this upload starts from an empty box. If the
+    // user already has text in there, they may be combining more than one
+    // document before extracting once — leave that to the manual button.
+    const wasEmpty = !text.trim();
     const isTextLike = /\.(txt|md)$/i.test(file.name) || file.type.startsWith("text/");
+    setBusy(true);
     try {
       let content: string;
       if (isTextLike) {
         content = await file.text();
       } else {
-        setBusy(true);
         const form = new FormData();
         form.append("file", file);
         const res = await fetch("/api/import/parse-file", { method: "POST", body: form });
@@ -63,14 +68,20 @@ export function ImportWizard({
         }
         content = data.text;
       }
-      setText((prev) => (prev.trim() ? `${prev}\n\n${content}` : content));
+      const merged = text.trim() ? `${text}\n\n${content}` : content;
+      setText(merged);
+      setUploadedFileName(file.name);
+      if (wasEmpty) await extract(merged);
     } finally {
       setBusy(false);
     }
   }
 
-  async function extract() {
-    if (!text.trim()) {
+  // `overrideText` lets a just-completed file upload extract immediately
+  // without waiting on React to flush the `text` state first.
+  async function extract(overrideText?: string) {
+    const toExtract = overrideText ?? text;
+    if (!toExtract.trim()) {
       setError("Paste some text or upload a file first.");
       return;
     }
@@ -80,7 +91,7 @@ export function ImportWizard({
       const res = await fetch("/api/import/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: toExtract }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -139,15 +150,13 @@ export function ImportWizard({
         setError(data.error ?? "Import failed.");
         return;
       }
-      // Onboarding drives its own navigation after a commit; the standalone
-      // /import page shows the done screen with follow-up actions.
-      if (embedded && onCommitted) {
-        onCommitted(data as ImportCounts);
-        return;
-      }
+      // Always show the confirmation screen with the real counts — this is
+      // the only proof-of-save the user gets, so onboarding must not skip
+      // it. Embedded mode only changes what the screen's button does next
+      // (advance the parent wizard vs. offer another standalone import).
       setCounts(data as ImportCounts);
       setStep("done");
-      router.refresh();
+      if (!embedded) router.refresh();
     } finally {
       setBusy(false);
     }
@@ -166,32 +175,54 @@ export function ImportWizard({
   }
 
   if (step === "done" && counts) {
+    const totalAdded =
+      counts.experiences + counts.skills + counts.education + counts.projects + counts.certifications;
     return (
       <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5">
-        <h2 className="font-semibold text-emerald-800">Added to your Career Brain</h2>
-        <ul className="mt-3 space-y-1 text-sm text-emerald-900">
-          {counts.profileUpdated && <li>Profile updated</li>}
-          <li>{counts.experiences} experience(s), {counts.achievements} achievement(s)</li>
-          <li>{counts.skills} new skill(s)</li>
-          <li>{counts.education} education entry(ies)</li>
-          <li>{counts.projects} project(s)</li>
-          <li>{counts.certifications} certification(s)</li>
-        </ul>
+        <h2 className="font-semibold text-emerald-800">✓ Added to your Career Brain</h2>
+        {totalAdded === 0 && !counts.profileUpdated ? (
+          <p className="mt-2 text-sm text-emerald-900">
+            Everything was unchecked, so nothing was added this time.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-1 text-sm text-emerald-900">
+            {counts.profileUpdated && <li>Profile updated</li>}
+            {counts.experiences > 0 && (
+              <li>{counts.experiences} experience(s), {counts.achievements} achievement(s)</li>
+            )}
+            {counts.skills > 0 && <li>{counts.skills} new skill(s)</li>}
+            {counts.education > 0 && <li>{counts.education} education entry(ies)</li>}
+            {counts.projects > 0 && <li>{counts.projects} project(s)</li>}
+            {counts.certifications > 0 && <li>{counts.certifications} certification(s)</li>}
+          </ul>
+        )}
         <div className="mt-4 flex gap-3">
-          <a href="/brain" className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors">
-            View Career Brain
-          </a>
-          <button
-            onClick={() => {
-              setStep("input");
-              setText("");
-              setCounts(null);
-              setProposal(emptyProposal);
-            }}
-            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
-          >
-            Import another
-          </button>
+          {embedded ? (
+            <button
+              onClick={() => onCommitted?.(counts)}
+              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+            >
+              Continue →
+            </button>
+          ) : (
+            <>
+              <a href="/brain" className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors">
+                View Career Brain
+              </a>
+              <button
+                onClick={() => {
+                  setStep("input");
+                  setText("");
+                  setCounts(null);
+                  setProposal(emptyProposal);
+                  setUploadedFileName(null);
+                }}
+                className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+              >
+                Import another
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -200,6 +231,9 @@ export function ImportWizard({
   if (step === "review") {
     return (
       <div className="mt-6 space-y-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+          Step 2 of 3 — review what we found. Nothing is added until you confirm below.
+        </p>
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {(proposal.profile.fullName || proposal.profile.headline || proposal.profile.summary) && (
@@ -337,6 +371,9 @@ export function ImportWizard({
 
   return (
     <div className="mt-6 space-y-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+        Step 1 of 3 — add your text, then Extract. Nothing saves until you confirm on the next screen.
+      </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <textarea
         value={text}
@@ -345,9 +382,10 @@ export function ImportWizard({
         placeholder="Paste your résumé or cover letter text here…"
         className="block w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
       />
+      {uploadedFileName && <p className="text-xs text-emerald-700">✓ Loaded {uploadedFileName}</p>}
       <div className="flex items-center gap-3">
         <label className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 cursor-pointer transition-colors">
-          {busy ? "Reading file…" : "Upload .txt / .md / .pdf / .docx"}
+          {busy ? "Working…" : "Upload .txt / .md / .pdf / .docx"}
           <input
             type="file"
             accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -357,14 +395,17 @@ export function ImportWizard({
           />
         </label>
         <button
-          onClick={extract}
+          onClick={() => extract()}
           disabled={busy || !text.trim()}
           title={!text.trim() ? "Paste or upload something first" : ""}
           className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {busy ? "Extracting…" : "Extract"}
+          {busy ? "Working…" : "Extract"}
         </button>
       </div>
+      <p className="text-xs text-stone-500">
+        Uploading a file extracts it right away. Pasted text needs a click on Extract once you&apos;re done.
+      </p>
       <p className="text-xs text-stone-500">
         Old .doc files and images aren&apos;t parsed — open the file, copy the text, and paste it above.
       </p>
