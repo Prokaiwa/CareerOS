@@ -38,6 +38,17 @@ terminal, plus the release machinery around it.
   backups entirely — so a shared export or synced database never carries
   a usable key.
 
+### Fixed
+- Onboarding now reliably saves what you upload. Each document step starts
+  with a fresh importer (previously the résumé text carried over into the
+  cover-letter/certifications steps and uploads appended to it), a
+  successful "Confirm & add to Brain" advances the wizard on its own, and
+  the footer button is now an explicit "Skip this step" — so it's no longer
+  possible to walk through the whole flow and land on a 0%-complete Brain
+  because nothing was ever committed. Added Back buttons throughout,
+  disabled Extract until there's text, and a clear message when an
+  extraction finds nothing usable.
+
 ### Changed
 - Backup and export accept a destination folder (validated server-side);
   the browser extension's permissions no longer assume port 3000, so it

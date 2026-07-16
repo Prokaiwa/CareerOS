@@ -15,7 +15,18 @@ const emptyProposal: ExtractedBrain = {
   certifications: [],
 };
 
-export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
+export function ImportWizard({
+  aiEnabled,
+  embedded = false,
+  onCommitted,
+}: {
+  aiEnabled: boolean;
+  /** Onboarding mode: after a successful commit, hand control back to the
+   *  parent (which advances the wizard) instead of showing the standalone
+   *  "Added to your Brain / Import another" screen. */
+  embedded?: boolean;
+  onCommitted?: (counts: ImportCounts) => void;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("input");
   const [text, setText] = useState("");
@@ -77,6 +88,22 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
         return;
       }
       const p = data as ExtractedBrain;
+      const foundNothing =
+        !p.profile.fullName?.trim() &&
+        !p.profile.headline?.trim() &&
+        !p.profile.email?.trim() &&
+        !p.profile.summary?.trim() &&
+        p.experiences.length === 0 &&
+        p.skills.length === 0 &&
+        p.education.length === 0 &&
+        p.projects.length === 0 &&
+        p.certifications.length === 0;
+      if (foundNothing) {
+        setError(
+          "Couldn't pull anything usable out of that text. Try pasting more of the document, or a different file.",
+        );
+        return;
+      }
       setProposal(p);
       setIncludeProfile(true);
       setExpChecked(p.experiences.map(() => true));
@@ -110,6 +137,12 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Import failed.");
+        return;
+      }
+      // Onboarding drives its own navigation after a commit; the standalone
+      // /import page shows the done screen with follow-up actions.
+      if (embedded && onCommitted) {
+        onCommitted(data as ImportCounts);
         return;
       }
       setCounts(data as ImportCounts);
@@ -325,8 +358,9 @@ export function ImportWizard({ aiEnabled }: { aiEnabled: boolean }) {
         </label>
         <button
           onClick={extract}
-          disabled={busy}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          disabled={busy || !text.trim()}
+          title={!text.trim() ? "Paste or upload something first" : ""}
+          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {busy ? "Extracting…" : "Extract"}
         </button>

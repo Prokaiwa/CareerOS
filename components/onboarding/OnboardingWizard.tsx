@@ -37,6 +37,13 @@ const DOCUMENT_STEPS: Array<{ step: Step; next: Step; title: string; hint: strin
 
 const TOTAL_STEPS = DOCUMENT_STEPS.length + 1; // the AI step comes first
 
+// Ordered flow for Back navigation (welcome and complete are handled apart).
+const FLOW: Step[] = ["ai", "resume", "cover-letter", "certifications", "portfolio"];
+function prevStepOf(step: Step): Step {
+  const i = FLOW.indexOf(step);
+  return i <= 0 ? "welcome" : FLOW[i - 1];
+}
+
 export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
@@ -199,7 +206,13 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
           <AiSettingsForm initial={aiStatus} />
         </div>
 
-        <div className="mt-6 border-t border-stone-200 pt-4">
+        <div className="mt-6 flex items-center gap-3 border-t border-stone-200 pt-4">
+          <button
+            onClick={() => setStep("welcome")}
+            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+          >
+            ← Back
+          </button>
           <button
             onClick={async () => {
               setActionBusy(true);
@@ -218,7 +231,7 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
           >
             {actionBusy ? "Loading…" : "Continue"}
           </button>
-          <span className="ml-3 text-xs text-stone-400">Not now? Just continue — this step is optional.</span>
+          <span className="text-xs text-stone-400">Not now? Just continue — this step is optional.</span>
         </div>
       </div>
     );
@@ -234,19 +247,37 @@ export function OnboardingWizard({ aiStatus }: { aiStatus: AiStatus }) {
         <h1 className="mt-1 text-xl font-bold">{doc.title}</h1>
         <p className="mt-1 text-sm text-stone-500">{doc.hint}</p>
 
-        <ImportWizard aiEnabled={aiEnabled} />
+        {/* key={step} remounts the importer for each step, so its text box
+            starts empty instead of carrying the previous document over.
+            onCommitted advances only after the data actually lands in the
+            Brain — the standalone button below is now an explicit skip. */}
+        <ImportWizard
+          key={step}
+          aiEnabled={aiEnabled}
+          embedded
+          onCommitted={() => (doc.next === "complete" ? goToCompletion() : setStep(doc.next))}
+        />
 
-        <div className="mt-6 border-t border-stone-200 pt-4">
+        <div className="mt-6 flex items-center gap-3 border-t border-stone-200 pt-4">
+          <button
+            onClick={() => setStep(prevStepOf(step))}
+            disabled={actionBusy}
+            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
+          >
+            ← Back
+          </button>
           <button
             onClick={() => (doc.next === "complete" ? goToCompletion() : setStep(doc.next))}
             disabled={actionBusy}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+            className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
           >
-            {actionBusy ? "Loading…" : "Continue"}
+            {actionBusy ? "Loading…" : "Skip this step →"}
           </button>
-          <span className="ml-3 text-xs text-stone-400">Nothing to add? Just continue — every step is optional.</span>
-          {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}
+          <span className="text-xs text-stone-400">
+            Add above with “Confirm &amp; add to Brain”, or skip — every step is optional.
+          </span>
         </div>
+        {actionError && <p className="mt-2 text-xs text-red-600">{actionError}</p>}
       </div>
     );
   }
